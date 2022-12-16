@@ -1,6 +1,6 @@
 # dg-metadata-manager
 
-DG-Metadata-Managerリポジトリ
+dg-metadata-managerリポジトリ
 
 ## 概要
 
