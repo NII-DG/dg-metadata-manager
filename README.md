@@ -20,3 +20,33 @@ RO-Crate作成と管理およびRO-Crateの検証結果の管理を行うWebア�
 ### 開発言語
 
 - Python : 3.10.8
+
+
+## リポジトリ構成
+
+```
+/
+├ api/
+│ ├ controllers/         コントローラクラスファイルを格納するディレクトリ
+│ │ └ xxxxxxxxxxx.py     コントローラクラスファイル
+│ ├ logics/               ロジッククラスファイルを格納するディレクトリ
+│ │ └ xxxxxxxxxxx.py     ロジッククラスファイル
+│ ├ models/              モデルクラスファイルを格納するディレクトリ
+│ │ └ xxxxxxxxxxx.py     モデルクラスファイル
+│ ├ utils/               共通モジュールディレクトリ
+│ └ __init__.py
+├ instance/
+│ └ config/              設定フォルダ
+│    ├ local.py
+│    ├ development.py
+│    ├ staging.py
+│    └ production.py
+├ log/
+├ tests/
+├ application.py          複数のファイルが利用するものを定義（Flaskインスタンス、DB、環境変数など）
+├ manager.py             アプリ実行用スクリプト（アプリの入り口）
+├ requirements.py        ライブラリ一覧
+├ settings.py
+├ setup.py
+└ www.py                 ルーティングをFlaskアプリケーションに登録するファイル
+```
