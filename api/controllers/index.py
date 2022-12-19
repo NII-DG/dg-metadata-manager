@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask.blueprints import Blueprint
 
 bpweb = Blueprint('web', __name__)
 
