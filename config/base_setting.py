@@ -8,6 +8,6 @@ SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{password}@{host}/{db_name}?ch
     'db_name': 'dg_mm_db'
 })
 
-SECRET_KEY = 'f9aife8alijdf'
+SECRET_KEY = 'base'
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False

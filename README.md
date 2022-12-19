@@ -148,3 +148,13 @@ SELECT user, host FROM mysql.user;
 GRANT ALL ON dg_mm_db.* TO 'test_user'@'%';
 FLUSH PRIVILEGES;
 ```
+
+## アプリケーションの起動（ローカル）
+
+```bash
+# DBなどのDBを作成
+python manager.py create_all
+
+# アプリケーション起動
+python manager.py runserver
+```
