@@ -1,6 +1,8 @@
 import datetime
 import logging
 from logging import getLogger, FileHandler
+from application import app
+import os
 
 #
 # ログクラス
@@ -17,7 +19,11 @@ class Log:
         # アプリケーションログ
         l = logging.getLogger("app")
         formatter = logging.Formatter('%(asctime)s <%(levelname)s> : %(message)s')
-        log_file = f"./logs/app/dg-mm-{today}.log"
+        log_file_path = os.path.join(app.config['APP_LOGGING_DIR_PATH'], app.config['APP_LOGGING_FILE_NAME'])
+        log_file = '{file_path}-{date}.log'.format(**{
+            'file_path': log_file_path,
+            'date': today
+        })
         fileHandler = logging.FileHandler(filename=log_file, mode='a', encoding="utf-8")
         fileHandler.setFormatter(formatter)
         l.setLevel(logging.INFO)
@@ -26,7 +32,11 @@ class Log:
         # DBログ
         l = logging.getLogger('sqlalchemy.engine')
         formatter = logging.Formatter('%(asctime)s <%(levelname)s> : %(message)s')
-        log_file = f"./logs/db/dg-mm-db-{today}.log"
+        log_file_path = os.path.join(app.config['DB_LOGGING_DIR_PATH'], app.config['DB_LOGGING_FILE_NAME'])
+        log_file = '{file_path}-{date}.log'.format(**{
+            'file_path': log_file_path,
+            'date': today
+        })
         fileHandler = logging.FileHandler(filename=log_file, mode='a', encoding="utf-8")
         fileHandler.setFormatter(formatter)
         l.setLevel(logging.INFO)

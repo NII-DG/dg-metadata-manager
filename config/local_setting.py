@@ -1,5 +1,6 @@
 DEBUG = True
 
+# [database]
 # データベース設定
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{password}@{host}/{db_name}?charset=utf8'.format(**{
     'user': 'test_user',
