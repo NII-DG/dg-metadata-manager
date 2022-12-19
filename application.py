@@ -9,8 +9,8 @@ app.config.from_pyfile("config/base_setting.py")
 
 # linux export ops_config=local|production
 # windows set ops_config=local|production
-# if "ops_config" in os.environ:
-#     app.config.from_pyfile("config/%s_setting.py" % (os.environ['ops_config']))
+if "ops_config" in os.environ:
+    app.config.from_pyfile("config/%s_setting.py" % (os.environ['ops_config']))
 
 # config 確認
 print("=========================================================================")
