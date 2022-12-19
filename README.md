@@ -118,3 +118,33 @@ RO-Crate作成と管理およびRO-Crateの検証結果の管理を行うWebア�
 ├ setup.py
 └ www.py                 ルーティングをFlaskアプリケーションに登録するファイル
 ```
+
+## データベースの設定（ローカル）
+
+- DBとしてMySQLを使用する。Ubuntu上でMySQLコンテナを作成する。
+
+```bash
+docker pull mysql:8.0.31
+
+docker run -d --name test_mysql -e MYSQL_ROOT_PASSWORD=mysql -p 3306:3306 mysql:8.0.31
+　
+docker exec -it test_mysql bash -p
+
+mysql -u root -p -h 127.0.0.1
+```
+
+- DBユーザとデータベースを作成する。
+
+```bash
+-- gin fork 用のデータベースを作成（データベース名はgin forkの設定ファイル記述する。）
+CREATE DATABASE dg_mm_db;
+SHOW databases;
+
+-- データベースの管理ユーザとパスワードを設定する。 （gin forkの設定ファイル記述する。）
+CREATE USER 'test_user'@'%' IDENTIFIED BY 'test_pw';
+SELECT user, host FROM mysql.user;
+
+-- ユーザ権限を付与する
+GRANT ALL ON dg_mm_db.* TO 'test_user'@'%';
+FLUSH PRIVILEGES;
+```
