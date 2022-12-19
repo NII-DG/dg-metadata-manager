@@ -11,7 +11,7 @@ manager.add_command("runserver", Server(host="0.0.0.0", use_debugger=True, use_r
 @Command
 def create_all():
     from api.models.user import User
-    db.create_all()
+    db.create_all()  # db.Modelを継承しているModelクラスを作成する。
 
 
 manager.add_command("create_all", create_all)
