@@ -1,13 +1,12 @@
 from flask.blueprints import Blueprint
 from application import db
 from api.models.user import User
+from api.app_logging.log import Log
 
 # log設定
-from logging import getLogger
-from config import logging_config
 
 user_route = Blueprint('user', __name__)
-logger = getLogger("basicLogger")
+log = Log()
 
 
 @user_route.route("/create/<user_name>")
@@ -17,7 +16,8 @@ def create(user_name: str = ""):
 
     db.session.add(user)
     db.session.commit()
-    logger.info("Create User :" + user.name)
+    log.Info("Create User :" + user.name)
+    log.Error("Create User :" + user.name)
     return "OK"
 
 
