@@ -1,9 +1,9 @@
 from flask.blueprints import Blueprint
 
-bpweb = Blueprint('web', __name__)
+bp_index = Blueprint('index', __name__)
 
 
-@bpweb.route("/")
+@bp_index.route("/")
 def name():
 
     return "hello"
