@@ -26,7 +26,7 @@ config.dictConfig(
             "fileHandler": {
                 "class": "logging.FileHandler",
                 "formatter": "formatter",
-                "level": INFO,
+                "level": DEBUG,
                 # ログファイルを出力したい場所のパスとファイル名を指定
                 "filename": f"./log/dg-mm-{today}.log",
                 "encoding": "utf-8"
