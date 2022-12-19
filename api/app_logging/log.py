@@ -3,6 +3,7 @@ import logging
 from logging import getLogger, FileHandler
 from application import app
 import os
+from api.enums.log_level import LogLevel
 
 #
 # ログクラス
@@ -26,7 +27,17 @@ class Log:
         })
         fileHandler = logging.FileHandler(filename=log_file, mode='a', encoding="utf-8")
         fileHandler.setFormatter(formatter)
-        l.setLevel(logging.INFO)
+        # log leveの設定
+        log_level = app.config['APP_LOGGING_LEVEL']
+        if LogLevel.DEBUG == log_level:
+            l.setLevel(logging.DEBUG)
+        elif LogLevel.INFO == log_level:
+            l.setLevel(logging.INFO)
+        elif LogLevel.WARN == log_level:
+            l.setLevel(logging.WARN)
+        elif LogLevel.ERROR == log_level:
+            l.setLevel(logging.ERROR)
+
         l.addHandler(fileHandler)
 
         # DBログ
@@ -39,7 +50,16 @@ class Log:
         })
         fileHandler = logging.FileHandler(filename=log_file, mode='a', encoding="utf-8")
         fileHandler.setFormatter(formatter)
-        l.setLevel(logging.INFO)
+        # log leveの設定
+        log_level = app.config['DB_LOGGING_LEVEL']
+        if LogLevel.DEBUG == log_level:
+            l.setLevel(logging.DEBUG)
+        elif LogLevel.INFO == log_level:
+            l.setLevel(logging.INFO)
+        elif LogLevel.WARN == log_level:
+            l.setLevel(logging.WARN)
+        elif LogLevel.ERROR == log_level:
+            l.setLevel(logging.ERROR)
         l.addHandler(fileHandler)
 
     def Info(self, msg):
