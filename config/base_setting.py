@@ -14,17 +14,20 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # [log] ロギングの設定ファイル
 # DB ロギングレベル['DEBUG'|'INFO'|'WARN'|'ERROR']
-DB_LOGGING_LEVEL = 'DEBUG'
+DB_LOGGING_LEVEL = 'INFO'
 # DB ログ出力先ディレクトリ
 DB_LOGGING_DIR_PATH = "./logs/db/"
 # DB ログ出力先ファイル名(指定ファイル名に.logが付与されます。)
 DB_LOGGING_FILE_NAME = "dg-mm-db"
+# DB ログファイルの最大バイト数(bytes)
+DB_LOGGING_MAX_BYTES = 2000
 # APP ロギングレベル['DEBUG'|'INFO'|'WARN'|'ERROR']
-APP_LOGGING_LEVEL = 'DEBUG'
+APP_LOGGING_LEVEL = 'INFO'
 # APP ログ出力先ディレクトリ
 APP_LOGGING_DIR_PATH = "./logs/app/"
 # APP ログ出力先ファイル名(指定ファイル名に.logが付与されます。)
 APP_LOGGING_FILE_NAME = "dg-mm"
-
+# APP ログファイルの最大バイト数(bytes)
+APP_LOGGING_MAX_BYTES = 2000
 
 SECRET_KEY = 'base'

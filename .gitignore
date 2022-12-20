@@ -1,3 +1,6 @@
 env-*
 logs/app/*
 logs/db/*
+config/development_setting.py
+config/staging_setting.py
+config/production_setting.py

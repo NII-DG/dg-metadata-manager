@@ -54,6 +54,7 @@ RO-Crate作成と管理およびRO-Crateの検証結果の管理を行うWebア�
     # env-{環境名}/Scripts/Activate.ps1
     env-dg-mm/Scripts/Activate.ps1
    ```
+
    ※このシステムではスクリプトの実行が無効になっているため、....を読み込めない。とメッセージが表示された場合は、 PowerShellでSet-ExecutionPolicy RemoteSigned -Scope CurrentUser -Forceを実行してからやり直す。
 
    環境の有効化が成功すると、(env-dg-mm)がターミナル行の先頭に表示される。
@@ -95,29 +96,35 @@ RO-Crate作成と管理およびRO-Crateの検証結果の管理を行うWebア�
 ```bash
 /
 ├ api/
-│ ├ controllers/         コントローラクラスファイルを格納するディレクトリ
-│ │ └ xxxxxxxxxxx.py     コントローラクラスファイル
-│ ├ logics/               ロジッククラスファイルを格納するディレクトリ
-│ │ └ xxxxxxxxxxx.py     ロジッククラスファイル
-│ ├ models/              モデルクラスファイルを格納するディレクトリ
-│ │ └ xxxxxxxxxxx.py     モデルクラスファイル
-│ └ utils/               共通モジュールディレクトリ
-│   ├ app_logging/       ロギングモジュールディレクトリ
-│   └ enums/              列挙型クラスディレクトリ
-├ instance/
-│ └ config/              設定フォルダ
-│    ├ local.py
-│    ├ development.py
-│    ├ staging.py
-│    └ production.py
-├ log/
-├ tests/
-├ application.py          複数のファイルが利用するものを定義（Flaskインスタンス、DB、環境変数など）
-├ manager.py             アプリ実行用スクリプト（アプリの入り口）
-├ requirements.py        ライブラリ一覧
-├ settings.py
-├ setup.py
-└ www.py                 ルーティングをFlaskアプリケーションに登録するファイル
+│ ├ controllers/              コントローラクラスファイルを格納するディレクトリ
+│ │ └ xxxxxxxxxxx.py          コントローラクラスファイル
+│ ├ logics/                   ロジッククラスファイルを格納するディレクトリ
+│ │ └ xxxxxxxxxxx.py          ロジッククラスファイル
+│ ├ models/                   モデルクラスファイルを格納するディレクトリ
+│ │ └ xxxxxxxxxxx.py          モデルクラスファイル
+│ └ utils/                    共通モジュールディレクトリ
+│   ├ app_logging/            ロギングモジュールディレクトリ
+│   └ enums/                  列挙型クラスディレクトリ
+├ config/                     設定フォルダ
+│ ├ base_setting.py           ベースとなる設定ファイル
+│ ├ local_setting.py          ローカル環境用設定ファイル
+│ ├ development_setting.py    開発環境用設定ファイル（git管理対象外）
+│ ├ staging_setting.py        検証環境用設定ファイル（git管理対象外）
+│ └ production_setting.py     本番環境用設定ファイル（git管理対象外）
+├ log/                        ログディレクトリ
+│ ├ app/                      アプリケーションログディレクトリ
+│   └*****.log                ログファイル（git管理対象外）
+│ └ db/                       データベースログディレクトリ
+│   └*****.log                ログファイル（git管理対象外）
+├ application.py              複数のファイルが利用するものを定義（Flaskインスタンス、DB、環境変数など）
+├ manager.py                  アプリ実行用スクリプト（アプリの入り口）
+├ www.py                      ルーティングをFlaskアプリケーションに登録するファイル
+├ requirements.txt            ライブラリ一覧
+├ tests/                      単体テストディレクトリ
+├ .gitignore                  Git管理対象外設定ファイル
+├ .github/                    GitHub設定ファイル
+├ README.md                   リポジトリ説明文書
+└ env-***/                    仮想環境用ディレクトリ（git管理対象外）
 ```
 
 ## データベースの設定（ローカル）
@@ -154,9 +161,9 @@ FLUSH PRIVILEGES;
 
 ```bash
 # 環境変数を設定する場合
-$Env:ops_config = "local"|"production" # powershell
-export ops_config=local|production # linux export ops_config=local|production
-set ops_config=local|production # windows set ops_config=local|production
+$Env:ops_config = "local" # powershell
+export ops_config=local # linux export ops_config=local|production
+set ops_config=local # windows set ops_config=local|production
 
 # 環境変数を削除する場合
 Remove-Item env:ops_config　# powershell
