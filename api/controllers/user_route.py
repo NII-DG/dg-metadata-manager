@@ -2,6 +2,7 @@ from flask.blueprints import Blueprint
 from application import db
 from api.models.user import User
 from api.utils.app_logging.log import Log
+from flask import request
 
 # log設定
 
@@ -19,6 +20,20 @@ def create(user_name: str = ""):
     log.Info("Create User :" + user.name)
     log.Error("Create User :" + user.name)
     return "OK"
+
+# POSTメソッドでユーザを作成し、JSONを返す
+@user_route.route("/create", methods=['POST'])
+def create_post():
+    user = User()
+    user.name = request.args['username']
+    db.session.add(user)
+    db.session.commit()
+    log.Info("Create User :" + user.name)
+    log.Error("Create User :" + user.name)
+    return {
+        "result": "OK",
+        "username": user.name
+    }
 
 
 @user_route.route("/lookup/<user_name>")
