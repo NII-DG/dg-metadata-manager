@@ -44,7 +44,6 @@ class Log:
         if LogLevel.DEBUG.name == log_level:
             l.setLevel(logging.DEBUG)
         elif LogLevel.INFO.name == log_level:
-            print("APP OK")
             l.setLevel(logging.INFO)
         elif LogLevel.WARN.name == log_level:
             l.setLevel(logging.WARN)
@@ -79,7 +78,6 @@ class Log:
         if LogLevel.DEBUG.name == log_level:
             l.setLevel(logging.DEBUG)
         elif LogLevel.INFO.name == log_level:
-            print("DB OK")
             l.setLevel(logging.INFO)
         elif LogLevel.WARN.name == log_level:
             l.setLevel(logging.WARN)
