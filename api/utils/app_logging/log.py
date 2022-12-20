@@ -3,7 +3,7 @@ import logging
 from logging import getLogger, FileHandler
 from application import app
 import os
-from api.enums.log_level import LogLevel
+from api.utils.enums.log_level import LogLevel
 
 #
 # ログクラス

@@ -1,11 +1,12 @@
 DEBUG = True
 
 # [database]
-# データベース設定
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{password}@{host}/{db_name}?charset=utf8'.format(**{
+# データベース接続設定
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}?charset=utf8'.format(**{
     'user': 'test_user',
     'password': 'test_pw',
-    'host': '192.168.196.198',
+    'host': '127.0.0.1',
+    'port': '3306',
     'db_name': 'dg_mm_db'
 })
 SQLALCHEMY_TRACK_MODIFICATIONS = False
