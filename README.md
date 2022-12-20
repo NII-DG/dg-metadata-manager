@@ -54,6 +54,7 @@ RO-Crate作成と管理およびRO-Crateの検証結果の管理を行うWebア�
     # env-{環境名}/Scripts/Activate.ps1
     env-dg-mm/Scripts/Activate.ps1
    ```
+
    ※このシステムではスクリプトの実行が無効になっているため、....を読み込めない。とメッセージが表示された場合は、 PowerShellでSet-ExecutionPolicy RemoteSigned -Scope CurrentUser -Forceを実行してからやり直す。
 
    環境の有効化が成功すると、(env-dg-mm)がターミナル行の先頭に表示される。
