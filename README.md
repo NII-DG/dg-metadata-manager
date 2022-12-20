@@ -101,8 +101,9 @@ RO-Crate作成と管理およびRO-Crateの検証結果の管理を行うWebア�
 │ │ └ xxxxxxxxxxx.py     ロジッククラスファイル
 │ ├ models/              モデルクラスファイルを格納するディレクトリ
 │ │ └ xxxxxxxxxxx.py     モデルクラスファイル
-│ ├ utils/               共通モジュールディレクトリ
-│ └ __init__.py
+│ └ utils/               共通モジュールディレクトリ
+│   ├ app_logging/       ロギングモジュールディレクトリ
+│   └ enums/              列挙型クラスディレクトリ
 ├ instance/
 │ └ config/              設定フォルダ
 │    ├ local.py

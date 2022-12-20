@@ -8,7 +8,20 @@ SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{password}@{host}/{db_name}?ch
     'host': '192.168.196.198',
     'db_name': 'dg_mm_db'
 })
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# [log] ロギングの設定ファイル
+# DB ロギングレベル['DEBUG'|'INFO'|'WARN'|'ERROR']
+DB_LOGGING_LEVEL = 'DEBUG'
+# DB ログ出力先ディレクトリ
+DB_LOGGING_DIR_PATH = "./logs/db/"
+# DB ログ出力先ファイル名(指定ファイル名に.logが付与されます。)
+DB_LOGGING_FILE_NAME = "dg-mm-db"
+# APP ロギングレベル['DEBUG'|'INFO'|'WARN'|'ERROR']
+APP_LOGGING_LEVEL = 'DEBUG'
+# APP ログ出力先ディレクトリ
+APP_LOGGING_DIR_PATH = "./logs/app/"
+# APP ログ出力先ファイル名(指定ファイル名に.logが付与されます。)
+APP_LOGGING_FILE_NAME = "dg-mm"
 
 SECRET_KEY = 'local'
-
-SQLALCHEMY_TRACK_MODIFICATIONS = False

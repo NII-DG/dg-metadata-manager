@@ -1,7 +1,7 @@
 from flask.blueprints import Blueprint
 from application import db
 from api.models.user import User
-from api.app_logging.log import Log
+from api.utils.app_logging.log import Log
 
 # log設定
 
