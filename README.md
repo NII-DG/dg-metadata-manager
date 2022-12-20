@@ -160,9 +160,9 @@ FLUSH PRIVILEGES;
 
 ```bash
 # 環境変数を設定する場合
-$Env:ops_config = "local"|"production" # powershell
-export ops_config=local|production # linux export ops_config=local|production
-set ops_config=local|production # windows set ops_config=local|production
+$Env:ops_config = "local" # powershell
+export ops_config=local # linux export ops_config=local|production
+set ops_config=local # windows set ops_config=local|production
 
 # 環境変数を削除する場合
 Remove-Item env:ops_config　# powershell
