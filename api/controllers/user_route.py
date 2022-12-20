@@ -10,7 +10,7 @@ user_route = Blueprint('user', __name__)
 log = Log()
 
 
-@user_route.route("/create/<user_name>")
+@user_route.route("/create/<string:user_name>")
 def create(user_name: str = ""):
     user = User()
     user.name = user_name
