@@ -5,11 +5,14 @@ import importlib
 from nii_dg.ro_crate import ROCrate
 from dg_mm.packaging import EntityInfo
 from dg_mm.error import InvalidInstanceType
+
 class Packager():
 
-    def __init__(self, ro_name:str) -> None:
-        self._ro_name = ro_name
-        self._entities = []
+    def __init__(self, ro_name:str, entities:List[EntityInfo]=[]) -> None:
+        ro_crate = ROCrate()
+        ro_crate.root['name'] = ro_name
+        self._ro_crate = ro_crate
+        self._entities = entities
 
     def add_entity(self, entity:EntityInfo):
         self._entities.append(entity)
@@ -18,13 +21,8 @@ class Packager():
         self._entities.extend(entities)
 
     def package_to_ro_crate(self)->ROCrate:
-        ro_crate = ROCrate()
-        ro_crate.root['name'] = self._ro_name
-
+        ro_crate = self._ro_crate
         for entity in self._entities:
-            if type(entity) is not  EntityInfo:
-                raise InvalidInstanceType('Instance type must be EntityInfo')
-
             # import module
             module = importlib.import_module(f"nii_dg.schema.{entity._schema_name}")
             # get class
@@ -37,9 +35,9 @@ class Packager():
                 else:
                     props[key] = value
             if has_id:
-                instance = class_(entity._props['@id'], props)
+                instance = class_(id_=entity._props['@id'], props=props)
             else:
-                instance = class_(props)
+                instance = class_(props=props)
             ro_crate.add(instance)
 
         # Check each entity for excess or deficiency of properties
