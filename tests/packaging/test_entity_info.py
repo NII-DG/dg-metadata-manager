@@ -1,6 +1,7 @@
 from unittest import TestCase
 from dg_mm.packaging import EntityInfo
 from dg_mm.error import NotExistID
+from nii_dg.schema.base import File
 
 class TestEntityInfo(TestCase):
 
@@ -54,3 +55,36 @@ class TestEntityInfo(TestCase):
         expected_err_msg = f'This EntityInfo instance does not have @id. schema_name : {schema_name_1}, entity_name : {entity_name_1}, props : {props_1}'
         with self.assertRaises(NotExistID, msg=expected_err_msg):
             ref_id = ei_1.get_ref_id()
+
+    def test_generate_entity(self):
+        fei_0 = EntityInfo(
+            'base',
+            'File',
+            {
+                '@id' : './test_0.txt',
+                'name' : 'test_0.txt',
+                'contentSize' : '1560B',
+                'encodingFormat' : 'text/plain',
+                'sha256' : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                'url' : 'https://github.com/username/repository/file',
+                'sdDatePublished' : '2022-12-01'
+            }
+        )
+        entity = fei_0.generate_entity()
+        self.assertEqual(File, type(entity))
+
+    def test_generate_entity_by_schema_entity(self):
+        schema_name = 'base'
+        entity_name = 'File'
+        prop = {
+                '@id' : './test_0.txt',
+                'name' : 'test_0.txt',
+                'contentSize' : '1560B',
+                'encodingFormat' : 'text/plain',
+                'sha256' : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                'url' : 'https://github.com/username/repository/file',
+                'sdDatePublished' : '2022-12-01'
+            }
+        entity = EntityInfo.generate_entity_by_schema_entity(schema_name, entity_name, prop)
+
+        self.assertEqual(File, type(entity))

@@ -59,7 +59,7 @@ class TestPackager(TestCase):
         self.assertEqual(ei_3, pkg._entities[2])
 
 
-    def test_package_to_ro_crate(self):
+    def test_package(self):
         ro_name = 'test ro_name'
         pkg = Packager(ro_name)
 
@@ -128,7 +128,7 @@ class TestPackager(TestCase):
         )
         pkg.add_entity(gin_ei)
 
-        ro_crate = pkg.package_to_ro_crate()
+        ro_crate = pkg.package()
 
         self.assertEqual(1, len(ro_crate.get_by_id(fei_0._props['@id'])))
         self.assertEqual(1, len(ro_crate.get_by_id(fei_1._props['@id'])))
