@@ -1,0 +1,42 @@
+name: Run Unit Test by pytest
+on:
+  push:
+    branches:
+      - feature/*
+  pull_request:
+    branches:
+      - master
+      - develop/*
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checout
+        uses: actions/checkout@v3
+
+      # Pythonの環境をセットアップ
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      # pytestをインストール
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      # 単体テスト実行
+      - name: PyTest
+        run: |
+          pytest -s ./tests
