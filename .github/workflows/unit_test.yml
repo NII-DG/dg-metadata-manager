@@ -1,0 +1,48 @@
+name: Run Unit Test by pytest
+on:
+  push:
+    branches:
+      - feature/*
+  pull_request:
+    branches:
+      - master
+      - develop/*
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        nii-dg-version: ["230419_8c684da"]
+
+    steps:
+      # Check out the repository
+      - name: Checout
+        uses: actions/checkout@v3
+
+      # Setting up the Python environment
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      # Installing Dependent Packages
+      - name: Install dependencies module
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      # Installing Dependent Packages(nii-dg library)
+      - name: Install dependencies module (nii-dg[${{ matrix.nii-dg-version }}])
+        run: |
+          pip install git+https://github.com/NII-DG/nii-dg.git@${{ matrix.nii-dg-version }}
+
+      # Unit Test Execution
+      - name: PyTest
+        run: |
+          pytest -s ./tests
