@@ -2,10 +2,20 @@ from typing import Dict, Any
 import importlib
 from dg_mm.error import NotExistID
 from nii_dg.entity import Entity
+from dg_mm.error import DependenceModuleError
 
 class EntityInfo():
 
     def __init__(self, schema_name:str, entity_name:str, props:Dict[str, Any]) -> None:
+        try:
+            module = importlib.import_module(f"nii_dg.schema.{schema_name}")
+            getattr(module, entity_name)
+        except ModuleNotFoundError:
+            raise DependenceModuleError(f"Not Found Schema(module) : {schema_name} [nii_dg.schema.{schema_name}]. Check the version of the nii-dg library installed and make sure it is correct.")
+        except AttributeError:
+            raise DependenceModuleError(f"Not Found Entity(class) : {entity_name} [nii_dg.schema.{schema_name}.{entity_name}]. Check the version of the nii-dg library installed and make sure it is correct.")
+
+
         self._schema_name = schema_name
         self._entity_name = entity_name
         self._props = props
@@ -20,6 +30,9 @@ class EntityInfo():
         if not has_id:
             raise NotExistID(f'This EntityInfo instance does not have @id. schema_name : {self._schema_name}, entity_name : {self._entity_name}, props : {self._props}')
         return ref_id
+
+    def ref(self):
+        return self.generate_entity()
 
     def generate_entity(self)->Entity:
         # import module

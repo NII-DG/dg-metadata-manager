@@ -4,3 +4,6 @@ class NotExistID(Exception):
 
 class InvalidInstanceType(Exception):
     pass
+
+class DependenceModuleError(Exception):
+    pass

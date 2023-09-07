@@ -2,13 +2,14 @@ from unittest import TestCase
 from dg_mm.packaging import EntityInfo
 from dg_mm.error import NotExistID
 from nii_dg.schema.base import File
+from dg_mm.error import DependenceModuleError
 
 class TestEntityInfo(TestCase):
 
     def test_constructor(self):
         # Case:1 Entity information with ID
-        schema_name_1 = 'test schema_name_1'
-        entity_name_1 = 'test entity_name_1'
+        schema_name_1 = 'base'
+        entity_name_1 = 'File'
         props_1 = {
             '@id' : 'test id 1',
             'name' : 'data name_1'
@@ -20,8 +21,8 @@ class TestEntityInfo(TestCase):
         self.assertEqual(props_1, ei_1._props)
 
         # Case:2 Entity information without ID
-        schema_name_2 = 'test schema_name_2'
-        entity_name_2 = 'test entity_name_2'
+        schema_name_2 = 'base'
+        entity_name_2 = 'File'
         props_2 = {
             'name' : 'data name_2'
             }
@@ -31,9 +32,32 @@ class TestEntityInfo(TestCase):
         self.assertEqual(entity_name_2, ei_2._entity_name)
         self.assertEqual(props_2, ei_2._props)
 
+    def test_constructor_err(self):
+        # Case:1 Specify a schema name that is not defined
+        schema_name_1 = 'invaid'
+        entity_name_1 = 'File'
+        props_1 = {
+            '@id' : 'test id 1',
+            'name' : 'data name_1'
+            }
+        expected_err_msg = f"Not Found Module : {schema_name_1} [nii_dg.schema.{schema_name_1}]. Check the version of the nii-dg library installed and make sure it is correct."
+        with self.assertRaises(DependenceModuleError, msg=expected_err_msg):
+            ei_1 = EntityInfo(schema_name_1, entity_name_1, props_1)
+
+        # Case:2 Specify an Entity name that is not defined
+        schema_name_2 = 'base'
+        entity_name_2 = 'invaid'
+        props_2 = {
+            'name' : 'data name_2'
+            }
+        expected_err_msg = f"Not Found Entity(class) : {entity_name_2} [nii_dg.schema.{schema_name_2}.{entity_name_2}]. Check the version of the nii-dg library installed and make sure it is correct."
+        with self.assertRaises(DependenceModuleError, msg=expected_err_msg):
+            ei_2 = EntityInfo(schema_name_2, entity_name_2, props_2)
+
+
     def test_get_ref_id_ok(self):
-        schema_name_1 = 'test schema_name_1'
-        entity_name_1 = 'test entity_name_1'
+        schema_name_1 = 'base'
+        entity_name_1 = 'File'
         id = 'test id 1'
         props_1 = {
             '@id' : id,
@@ -45,8 +69,8 @@ class TestEntityInfo(TestCase):
         self.assertEqual({'@id' : id}, ref_id)
 
     def test_get_ref_id_err(self):
-        schema_name_1 = 'test schema_name_1'
-        entity_name_1 = 'test entity_name_1'
+        schema_name_1 = 'base'
+        entity_name_1 = 'File'
         props_1 = {
             'name' : 'data name_1'
             }

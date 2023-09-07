@@ -109,7 +109,7 @@ class TestPackager(TestCase):
             {
                 '@id' : 'https://orcid.org/0000-0001-2345-6789',
                 'name' : 'Ichiro Suzuki',
-                'affiliation' : base_org_1.get_ref_id(),
+                'affiliation' : base_org_1.ref(),
                 'email' : 'ichiro@example.com'
             })
         pkg.add_entity(base_person_1)
@@ -135,5 +135,3 @@ class TestPackager(TestCase):
         self.assertEqual(1, len(ro_crate.get_by_id(base_org_1._props['@id'])))
         self.assertEqual(1, len(ro_crate.get_by_id(base_person_1._props['@id'])))
         self.assertEqual(1, len(ro_crate.get_by_id('#ginmonitoring')))
-
-        print(ro_crate.as_jsonld())
