@@ -19,6 +19,7 @@ metadatamanager = "dg_mm:__main__.main"
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-mock",
 ]
 
 [tool.pytest.ini_options]
