@@ -20,7 +20,7 @@ jobs:
 
     steps:
       # リポジトリをチェックアウト
-      - name: Checout
+      - name: Checkout
         uses: actions/checkout@v4
 
       # Python環境のセットアップ
@@ -38,6 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install pytest-mock
+          pip install requests
 
       # テスト実施
       - name: Run pytest
