@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dg-metadata-manager"
 dependencies = [
+    "requests"
 ]
 requires-python = ">= 3.8"
 readme = "README.md"
@@ -23,7 +24,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = "dg_mm"
+pythonpath = "."
 testpaths = [
     "tests",
 ]
