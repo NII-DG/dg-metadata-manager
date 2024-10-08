@@ -637,7 +637,7 @@ class GrdmAccess():
                 response = requests.get(url, headers=headers, timeout=timeout)
                 response.raise_for_status()
                 data = response.json()
-                if not result:
+                if result is None:
                     result = data
                 else:
                     result["data"].extend(data["data"])
@@ -751,6 +751,8 @@ class GrdmAccess():
         except requests.exceptions.HTTPError as e:
             if response.status_code == 500:
                 raise APIError("APIサーバーでエラーが発生しました")
+            else:
+                raise
         except requests.exceptions.Timeout as e:
             raise APIError("APIリクエストがタイムアウトしました")
         return result

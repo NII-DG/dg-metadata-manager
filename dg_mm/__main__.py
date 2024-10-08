@@ -63,7 +63,7 @@ def get_metadata(args: argparse.Namespace):
     mm = MetadataManger()
     result = mm.get_metadata(**params)
     if args.file is not None:
-        with open(args.file, 'w')as f:
+        with open(args.file, 'w') as f:
             json.dump(result, f, indent=4, ensure_ascii=False)
     else:
         print(json.dumps(result, indent=4, ensure_ascii=False))
