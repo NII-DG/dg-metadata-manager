@@ -1,4 +1,11 @@
 """ユーザーからのアクセスが行われるクラスを記載したモジュールです。"""
+from logging import getLogger
+
+from dg_mm.models.base import BaseMapping
+from dg_mm.models.grdm import GrdmMapping
+from dg_mm.exceptions import StorageNameError
+
+logger = getLogger(__name__)
 
 from logging import getLogger
 
