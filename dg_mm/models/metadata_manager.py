@@ -1,4 +1,5 @@
 """ユーザーからのアクセスが行われるクラスを記載したモジュールです。"""
+
 from logging import getLogger
 
 from dg_mm.models.base import BaseMapping
@@ -17,8 +18,7 @@ class MetadataManger():
     """
     _ACTIVE_STORAGES = {"GRDM": "GrdmMapping"}
 
-    @staticmethod
-    def get_metadata(schema: str, storage: str, token: str = None, id: str = None, option: list = None) -> dict:
+    def get_metadata(self, schema: str, storage: str, token: str = None, id: str = None, option: list = None) -> dict:
         """引数で指定されたストレージからスキーマの定義に則ったメタデータを取得するメソッドです。
 
         Args:
@@ -33,7 +33,7 @@ class MetadataManger():
         """
         if storage not in MetadataManger._ACTIVE_STORAGES:
             raise StorageNameError("対応していないストレージが指定されました")
-        cls: BaseMapping = globals()[MetadataManger._ACTIVE_STORAGES[storage]]
-        instance = cls()
+        mapping_cls : BaseMapping = globals()[MetadataManger._ACTIVE_STORAGES[storage]]
+        instance = mapping_cls()
         param = (schema, token, id, option)
         return instance.mapping_metadata(*param)
