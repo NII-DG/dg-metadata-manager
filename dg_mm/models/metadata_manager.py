@@ -1,4 +1,5 @@
 """ユーザーからのアクセスが行われるクラスを記載したモジュールです。"""
+
 from logging import getLogger
 
 from dg_mm.models.base import BaseMapping
