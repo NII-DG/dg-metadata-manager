@@ -20,7 +20,6 @@ from dg_mm.exceptions import (
 
 logger = getLogger(__name__)
 
-
 class GrdmMapping():
     """GRDMとのマッピングを行うクラスです。
 
