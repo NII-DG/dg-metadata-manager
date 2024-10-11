@@ -102,10 +102,6 @@ class GrdmMapping():
             logger.error(e)
             raise NotFoundSourceError("メタデータ取得先の特定に失敗しました。") from e
 
-
-
-
-
         return self._new_schema
 
     def _find_metadata_sources(self) -> list:
@@ -176,12 +172,12 @@ class GrdmMapping():
                             continue
                 #対応するリストが存在しない場合
                 else:
-                    index = int(is_link) #マッピング定義で指定したインデックス
+                    is_link #マッピング定義で指定したインデックス
                     if 0 <= is_link < len(source[key]):
                         source = source[key][index]
                     else:
                         raise MappingDefinitionError(
-                            f"指定されたインデックス:{index}が存在しません({schema_property})")
+                            f"指定されたインデックス:{is_link}が存在しません({schema_property})")
 
 
             #値がdict構造の場合
@@ -205,19 +201,18 @@ class GrdmMapping():
 
         #値がリスト構造の場合
         if isinstance(source[final_key], list):
-            result = is_list.get(final_key)
-            if result:
+            is_link = is_list.get(final_key)
+            if is_link:
                 #対応するリストが存在する場合
-                if not result.isdigit():
+                if not is_link.isdigit():
                     for i, item in enumerate(source[final_key]):
-                        link_list[result] = i + 1
+                        link_list[is_link] = i + 1
                         results.extend(item)
                     self._create_schema(definition, results, link_list)
                 #対応するリストが存在しない場合
                 else:
-                    index = int(result)
-                    if len(source[final_key]) > 0 and 0 <= index < len(source[final_key]):
-                            results.extend(source[final_key][index])
+                    if len(source[final_key]) > 0 and 0 <= is_link < len(source[final_key]):
+                        results.extend(source[final_key][is_link])
                     else:
                         raise MappingDefinitionError(
                             f"指定されたインデックスが存在しません({schema_property})")
