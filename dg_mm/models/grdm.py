@@ -179,7 +179,6 @@ class GrdmMapping():
                         raise MappingDefinitionError(
                             f"指定されたインデックス:{is_link}が存在しません({schema_property})")
 
-
             #値がdict構造の場合
             elif isinstance(source[key], dict):
                 if key not in is_list:
@@ -198,7 +197,7 @@ class GrdmMapping():
             raise NotFoundKeyError(
                 f"メタデータに一致するキー名{final_key}が見つかりません({schema_property})")
 
-
+        results = []
         #値がリスト構造の場合
         if isinstance(source[final_key], list):
             is_link = is_list.get(final_key)
@@ -207,6 +206,7 @@ class GrdmMapping():
                 if not is_link.isdigit():
                     for i, item in enumerate(source[final_key]):
                         link_list[is_link] = i + 1
+                        results = []
                         results.extend(item)
                     self._create_schema(definition, results, link_list)
                 #対応するリストが存在しない場合
@@ -216,6 +216,7 @@ class GrdmMapping():
                     else:
                         raise MappingDefinitionError(
                             f"指定されたインデックスが存在しません({schema_property})")
+
                     self._create_schema(definition, results, link_list)
 
             #通常のリストの処理
@@ -234,7 +235,6 @@ class GrdmMapping():
             if value is not None:
                 results.append(value)
             self._create_schema(definition, results, link_list)
-
 
     def _create_schema(self, definition: dict, results: list, link_list: dict):
         """スキーマを作成し、データを挿入するメソッドです。
