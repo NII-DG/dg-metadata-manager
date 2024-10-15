@@ -10,5 +10,5 @@ class BaseMapping(Protocol):
 
     """
 
-    def mapping_metadata(self, schema: str, storage: str, *args: Any, **kwards):
+    def mapping_metadata(self, schema: str, *args: Any, **kwards):
         """スキーマの定義に従いマッピングを行うメソッドです。"""

@@ -4,7 +4,11 @@ import json
 import os
 from logging import getLogger
 
-from dg_mm.exceptions import NotFoundMappingDefinitionError, NotFoundKeyError
+from dg_mm.exceptions import(
+    MappingDefinitionError,
+    NotFoundMappingDefinitionError,
+    NotFoundKeyError
+)
 
 logger = getLogger(__name__)
 
@@ -52,11 +56,15 @@ class DefinitionManager():
 
         except NotFoundMappingDefinitionError as e:
             logger.error(e)
-            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません")
+            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません") from e
 
         except NotFoundKeyError as e:
             logger.error(e)
-            raise NotFoundKeyError("入力したスキーマのプロパティは定義されていません。")
+            raise NotFoundKeyError("入力したスキーマのプロパティは定義されていません。") from e
+
+        except MappingDefinitionError as e:
+            logger.error(e)
+            raise MappingDefinitionError("マッピング定義ファイルの読み込みに失敗しました。") from e
 
     def _read_mapping_definition(self, schema: str, storage: str) -> dict:
         """マッピング定義の読み取りを行うメソッドです。
@@ -80,7 +88,10 @@ class DefinitionManager():
         if not os.path.isfile(file_path):
             raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません")
 
-        with open(file_path, 'r', encoding='utf-8') as f:
-            mapping_definition = json.load(f)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                mapping_definition = json.load(f)
+        except Exception as e:
+            raise MappingDefinitionError("マッピング定義ファイルを読み込めません") from e
 
         return mapping_definition

@@ -1,6 +1,6 @@
 """ユーザーからのアクセスが行われるクラスを記載したモジュールです。"""
 
-class MetadataManger():
+class MetadataManeger():
     """メタデータの管理を行うクラスです。
 
     Attributes:
