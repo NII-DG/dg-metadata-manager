@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser()
     subparser = parser.add_subparsers()
 
-    parser_get = subparser.add_parser('get', help='GRDMを含む研究データ管理サービスからメタデータを収集し、RDC-AP/DG-APの定義に則った形式で取得する。')
+    parser_get = subparser.add_parser('get', help='GRDMを含む研究データ管理サービスからメタデータを収集し、指定したスキーマの形式で取得する。')
     parser_get.add_argument('--schema', required=True, help='スキーマの名称を指定する')
     parser_get.add_argument('--storage', required=True, help='ストレージの名称を指定する')
     parser_get.add_argument(
@@ -23,7 +23,7 @@ def main():
         '--filter', nargs='*', help='スキーマの一部を指定したい場合に使用する。スキーマのプロパティを、ルートから「.」でつなげた形式で指定する。複数指定可能。')
     parser_get.add_argument(
         '--filter-file', dest='filter_file',
-        help='スキーマの一部をファイルとして指定したい場合に使用する。スキーマのプロパティ一覧が書かれたjsonファイルのパスを指定する。filterと同時に指定した場合はこちらを優先する。')
+        help='スキーマの一部をファイルを用いて指定したい場合に使用する。スキーマのプロパティ一覧が書かれたjsonファイルのパスを指定する。filterと同時に指定した場合はこちらを優先する。')
     parser_get.add_argument(
         '--file', help='ファイル出力先。通常は標準出力に出力されるメタデータをファイルに出力したい場合に使用する。既に存在するファイルには上書きする。')
     parser_get.set_defaults(func=get_metadata)

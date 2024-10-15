@@ -507,6 +507,9 @@ class GrdmAccess():
             _token(str):アクセストークン
             _project_id(str):プロジェクトid
             _config_file(ConfigParser):GRDMの設定ファイルのインスタンス
+            _domain(str):GRDMのドメイン
+            _timeout(float):リクエストのタイムアウトする時間(秒)
+            _max_requests(int):リクエスト回数の上限
     """
     _CONFIG_PATH = "dg_mm/data/storage/grdm.ini"
     _ALLOWED_SCOPES = ["osf.full_write", "osf.full_read"]
@@ -515,6 +518,9 @@ class GrdmAccess():
         """インスタンスの初期化メソッド"""
         self._config_file = configparser.ConfigParser()
         self._config_file.read(GrdmAccess._CONFIG_PATH)
+        self._domain = self._config_file["settings"]["domain"]
+        self._timeout = self._config_file["settings"].getfloat("timeout")
+        self._max_requests = self._config_file["settings"].getint("max_requests")
 
     def check_authentication(self, token: str, project_id: str) -> bool:
         """アクセス権の認証を行うメソッドです。
@@ -540,22 +546,20 @@ class GrdmAccess():
         Raises:
             InvalidTokenError:トークン不正のエラー
             AccessDeniedError:アクセス権不正のエラー
-            APIError:APIのエラー
+            APIError:APIのサーバーエラー、タイムアウト
         """
-        domain = self._config_file["settings"]["domain"]
         base_url = self._config_file["url"]["token"]
-        url = base_url.format(domain=domain)
+        url = base_url.format(domain=self._domain)
         headers = {'Authorization': f'Bearer {self._token}'}
-        timeout = self._config_file["settings"].getfloat("timeout")
         try:
-            response = requests.get(url, headers=headers, timeout=timeout)
+            response = requests.get(url, headers=headers, timeout=self._timeout)
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.HTTPError as e:
             if response.status_code == 401:
                 logger.error(f"InvalidTokenError: {e}")
                 raise InvalidTokenError("認証に失敗しました")
-            elif response.status_code == 500:
+            elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
             else:
@@ -581,15 +585,13 @@ class GrdmAccess():
         Raises:
             AccessDeniedError:アクセス権不正
             InvalidProjectError:プロジェクト不正
-            APIError:APIのエラー
+            APIError:APIのサーバーエラー、タイムアウト
         """
-        domain = self._config_file["settings"]["domain"]
         base_url = self._config_file["url"]["project_info"]
-        url = base_url.format(domain=domain, project_id=self._project_id)
+        url = base_url.format(domain=self._domain, project_id=self._project_id)
         headers = {'Authorization': f'Bearer {self._token}'}
-        timeout = self._config_file["settings"].getfloat("timeout")
         try:
-            response = requests.get(url, headers=headers, timeout=timeout)
+            response = requests.get(url, headers=headers, timeout=self._timeout)
             response.raise_for_status()
             result = response.json()
         except requests.exceptions.HTTPError as e:
@@ -602,11 +604,11 @@ class GrdmAccess():
             elif response.status_code == 410:
                 logger.error(f"Project deleted: {e}")
                 raise InvalidProjectError("プロジェクトが削除されています")
-            elif response.status_code == 500:
+            elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
             else:
-                # 想定外のエラー
+                logger.error(f"Unexpected HTTP error: {e}")
                 raise
         except requests.exceptions.Timeout as e:
             logger.error(f"API request timeout: {e}")
@@ -616,25 +618,29 @@ class GrdmAccess():
     def get_project_metadata(self) -> dict:
         """プロジェクトメタデータを取得するメソッドです。
 
+        登録されているプロジェクトメタデータの数が11個件以上の場合は1回目のレスポンスの"data"に2回目以降のレスポンスの"data"を末尾に追加する。
+
         Returns:
-            dict: APIから取得したプロジェクトメタデータを返す。
+            dict: APIから取得したプロジェクトメタデータを返す。11件以上の場合は以下の形式になる。
+                - "data": 登録されているすべてのプロジェクトメタデータが含まれる。
+                - "links": 1ページ目の情報が入っている。
+                - "meta": 1ページ目の情報が入っている。
 
         Raises:
             UnauthorizedError:認証処理を実行せずに実行した場合のエラー
-            APIError:APIのエラー
+            APIError:APIのサーバーエラー、タイムアウト、リクエスト回数の上限
         """
         if not self._is_authenticated:
             logger.error(f"Executed without authentication process")
             raise UnauthorizedError("認証されていません")
-        domain = self._config_file["settings"]["domain"]
         base_url = self._config_file["url"]["project_metadata"]
-        url = base_url.format(domain=domain, project_id=self._project_id)
+        url = base_url.format(domain=self._domain, project_id=self._project_id)
         headers = {'Authorization': f'Bearer {self._token}'}
-        timeout = self._config_file["settings"].getfloat("timeout")
+        request_count = 0
         result = None
         try:
             while url:
-                response = requests.get(url, headers=headers, timeout=timeout)
+                response = requests.get(url, headers=headers, timeout=self._timeout)
                 response.raise_for_status()
                 data = response.json()
                 if result is None:
@@ -642,11 +648,15 @@ class GrdmAccess():
                 else:
                     result["data"].extend(data["data"])
                 url = data["links"].get("next")
+                request_count += 1
+                if request_count >= self._max_requests:
+                    raise APIError("リクエスト回数が上限を超えました")
         except requests.exceptions.HTTPError as e:
-            if response.status_code == 500:
+            if response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
             else:
+                logger.error(f"Unexpected HTTP error: {e}")
                 raise
         except requests.exceptions.Timeout as e:
             logger.error(f"API request timeout: {e}")
@@ -660,28 +670,27 @@ class GrdmAccess():
             dict: APIから取得したファイルメタデータを返す
         Raises:
             UnauthorizedError: 認証処理を実行せずに実行した場合のエラー
-            APIError:APIのエラー
+            APIError:APIのサーバーエラー、タイムアウト
         """
         if not self._is_authenticated:
             logger.error(f"Executed without authentication process")
             raise UnauthorizedError("認証されていません")
-        domain = self._config_file["settings"]["domain"]
         base_url = self._config_file["url"]["file_metadata"]
-        url = base_url.format(domain=domain, project_id=self._project_id)
+        url = base_url.format(domain=self._domain, project_id=self._project_id)
         headers = {'Authorization': f'Bearer {self._token}'}
-        timeout = self._config_file["settings"].getfloat("timeout")
         try:
-            response = requests.get(url, headers=headers, timeout=timeout)
+            response = requests.get(url, headers=headers, timeout=self._timeout)
             response.raise_for_status()
             result = response.json()
         except requests.exceptions.HTTPError as e:
-            # アドオンが無効の場合もエラーにしない
             if response.status_code == 400:
+                # アドオンが無効の場合もエラーにしない
                 result = {}
-            elif response.status_code == 500:
+            elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
             else:
+                logger.error(f"Unexpected HTTP error: {e}")
                 raise
         except requests.exceptions.Timeout as e:
             logger.error(f"API request timeout: {e}")
@@ -696,24 +705,24 @@ class GrdmAccess():
 
         Raises:
             UnauthorizedError: 認証処理を実行せずに実行した場合のエラー
-            APIError:APIのエラー
+            APIError:APIのサーバーエラー、タイムアウト
         """
         if not self._is_authenticated:
             logger.error(f"Executed without authentication process")
             raise UnauthorizedError("認証されていません")
-        domain = self._config_file["settings"]["domain"]
-        url = self._config_file["url"]["project_info"].format(domain=domain, project_id=self._project_id)
+        base_url = self._config_file["url"]["project_info"]
+        url = base_url.format(domain=self._domain, project_id=self._project_id)
         headers = {'Authorization': f'Bearer {self._token}'}
-        timeout = self._config_file["settings"].getfloat("timeout")
         try:
-            response = requests.get(url, headers=headers, timeout=timeout)
+            response = requests.get(url, headers=headers, timeout=self._timeout)
             response.raise_for_status()
             result = response.json()
         except requests.exceptions.HTTPError as e:
-            if response.status_code == 500:
+            if response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
             else:
+                logger.error(f"Unexpected HTTP error: {e}")
                 raise
         except requests.exceptions.Timeout as e:
             logger.error(f"API request timeout: {e}")
@@ -723,36 +732,47 @@ class GrdmAccess():
     def get_member_info(self) -> dict:
         """メンバー情報を取得するメソッドです。
 
+        メンバーが11人以上の場合は1回目のレスポンスの"data"に2回目以降のレスポンスの"data"を末尾に追加する。
+
         Returns:
-            dict: APIから取得したメンバー情報を返す
+            dict: APIから取得したメンバー情報を返す。11件以上の場合は以下の形式になる。
+                - "data": 登録されているすべてのメンバー情報が含まれる。
+                - "links": 1ページ目の情報が入っている。
+                - "meta": 1ページ目の情報が入っている。
 
         Raises:
             UnauthorizedError: 認証処理を実行せずに実行した場合のエラー
-            APIError:APIのエラー
+            APIError:APIのサーバーエラー、タイムアウト、リクエスト回数の上限
         """
         if not self._is_authenticated:
             logger.error(f"Executed without authentication process")
             raise UnauthorizedError("認証されていません")
-        domain = self._config_file["settings"]["domain"]
-        url = self._config_file["url"]["member_info"].format(domain=domain, project_id=self._project_id)
+        base_url = self._config_file["url"]["member_info"]
+        url = base_url.format(domain=self._domain, project_id=self._project_id)
         headers = {'Authorization': f'Bearer {self._token}'}
-        timeout = self._config_file["settings"].getfloat("timeout")
+        request_count = 0
         result = None
         try:
             while url:
-                response = requests.get(url, headers=headers, timeout=timeout)
+                response = requests.get(url, headers=headers, timeout=self._timeout)
                 response.raise_for_status()
                 data = response.json()
-                if not result:
+                if result is None:
                     result = data
                 else:
                     result["data"].extend(data["data"])
                 url = data["links"].get("next")
+                request_count += 1
+                if request_count >= self._max_requests:
+                    raise APIError("リクエスト回数が上限を超えました")
         except requests.exceptions.HTTPError as e:
-            if response.status_code == 500:
+            if response.status_code >= 500:
+                logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
             else:
+                logger.error(f"Unexpected HTTP error: {e}")
                 raise
         except requests.exceptions.Timeout as e:
+            logger.error(f"API request timeout: {e}")
             raise APIError("APIリクエストがタイムアウトしました")
         return result
