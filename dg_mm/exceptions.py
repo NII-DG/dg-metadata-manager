@@ -28,6 +28,6 @@ class InvalidProjectError(MetadatamanagerError):
     pass
 
 
-class StorageNameError(MetadatamanagerError):
+class InvalidStorageError(MetadatamanagerError):
     """対応していないストレージを指定した場合のエラー"""
     pass
