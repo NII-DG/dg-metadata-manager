@@ -4,7 +4,7 @@ from logging import getLogger
 
 from dg_mm.models.base import BaseMapping
 from dg_mm.models.grdm import GrdmMapping
-from dg_mm.exceptions import StorageNameError
+from dg_mm.exceptions import InvalidStorageError
 
 logger = getLogger(__name__)
 
