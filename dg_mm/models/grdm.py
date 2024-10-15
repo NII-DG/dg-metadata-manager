@@ -15,46 +15,46 @@ logger = getLogger(__name__)
 
 
 class GrdmMapping():
-    """ストレージとしてGRDMが選択された場合にマッピングを行うクラスです。
+    """GRDMとのマッピングを行うクラスです。
 
     Attributes:
         instance:
-            _mapping_definition(dict):　絞り込まれたマッピング定義
-            _new_schema(dict):　作成するスキーマ
+            _mapping_definition(dict): マッピング定義
+            _new_schema(dict): 作成するスキーマ
 
     """
 
-    def mapping_metadata(self, schema: str, token: str, project_id: str, filter_property: list = None) -> dict:
+    def mapping_metadata(self, schema: str, token: str, project_id: str, filter_properties: list = None) -> dict:
         """スキーマの定義に従いマッピングを行うメソッドです。
 
         Args:
-            schema (str):　スキーマを一意に定める文字列
+            schema (str): スキーマを一意に定める文字列
             storage (str): ストレージを一意に定める文字列
-            token (str):　GRDMの認証に用いるトークン
-            project_id (str):　GRDMのプロジェクトを一意に定めるID
-            filter_property (list):　スキーマの絞り込みに用いるプロパティの一覧。デフォルトはNone
+            token (str): GRDMの認証に用いるトークン
+            project_id (str): GRDMのプロジェクトを一意に定めるID
+            filter_properties (list): スキーマの絞り込みに用いるプロパティの一覧。デフォルトはNone
 
         Returns:
             dict:　スキーマにデータを挿入したもの
 
         Raises:
-            NotFoundSourceError:　メタデータ取得先が存在しない
-            MappingDefinitionError:　マッピング定義書の内容に誤りがある
+            NotFoundSourceError: メタデータ取得先が存在しない
+            MappingDefinitionError: マッピング定義の内容に誤りがある
 
         """
         # GRDMの認証
-        grdmaccess = GrdmAccess()
-        grdmaccess.check_authentication(token, project_id)
+        grdm_access = GrdmAccess()
+        grdm_access.check_authentication(token, project_id)
 
-        if filter_property is None:
-            filter_property = []
+        if filter_properties is None:
+            filter_properties = []
 
-        try:
             # マッピング定義の取得
             storage = "GRDM"
             self._mapping_definition = DefinitionManager.get_mapping_definition(
-                schema, storage, filter_property)
+                schema, storage, filter_properties)
 
+        try:
             # メタデータ取得先の特定
             metadata_sources = self._find_metadata_sources()
 
@@ -62,10 +62,10 @@ class GrdmMapping():
             source_data = {}
             if metadata_sources:
                 source_mapping = {
-                    "project_info": grdmaccess.get_project_info,
-                    "member_info": grdmaccess.get_member_info,
-                    "project_metadata": grdmaccess.get_project_metadata,
-                    "file_metadata": grdmaccess.get_file_metadata,
+                    "project_info": grdm_access.get_project_info,
+                    "member_info": grdm_access.get_member_info,
+                    "project_metadata": grdm_access.get_project_metadata,
+                    "file_metadata": grdm_access.get_file_metadata,
                 }
                 for source in metadata_sources:
                     if source in source_mapping:
@@ -83,7 +83,7 @@ class GrdmMapping():
                 # 対応するデータがGRDMに存在しない場合
                 if storage_path is None:
                     results = []
-                    self._create_schema(definition, results, link_list)
+                    self._new_schema = self._create_schema(definition, results, link_list)
                     continue
 
                 try:
@@ -97,7 +97,7 @@ class GrdmMapping():
                 # GRDMに指定したデータが存在しない場合は次のプロパティへ
                 except NotFoundKeyError as e:
                     results = []
-                    self._create_schema(definition, results, link_list)
+                    self._new_schema = self._create_schema(definition, results, link_list)
                     logger.error(e)
                     continue
 
@@ -119,7 +119,7 @@ class GrdmMapping():
         """メタデータの取得先を特定するメソッドです。
 
         Returns:
-            list:　メタデータの取得先の一覧
+            list: メタデータの取得先の一覧
 
         """
         metadata_sources = set()
@@ -135,10 +135,10 @@ class GrdmMapping():
         """必要なメタデータのみを取得するメソッドです。
 
         Args:
-            source (dict):　ストレージから取得した全データ
+            source (dict): ストレージから取得した全データ
             definition (dict): スキーマのプロパティ一つ当たりの定義
-            link_list (dict):　対応するリストの情報
-            key_path (str, optional):　取得するデータを示す文字列。デフォルトはNone
+            link_list (dict): 対応するリストの情報
+            key_path (str, optional): 取得するデータを示す文字列。デフォルトはNone
 
         Raises:
             NotFoundKeyError:　データの構造を示すキーが存在しない
@@ -172,13 +172,12 @@ class GrdmMapping():
                                 item, definition, link_list, '.'.join(keys[index+1:]))
                         except NotFoundKeyError as e:
                             results = []
-                            self._create_schema(definition, results, link_list)
+                            self._new_schema = self._create_schema(definition, results, link_list)
                             logger.error(e)
                             continue
                 # 対応するリストが存在しない場合
                 else:
-                    is_link  # マッピング定義で指定したインデックス
-                    if 0 <= is_link < len(source[key]):
+                    if 0 <= is_link < len(source[key]): # マッピング定義で指定したインデックス
                         source = source[key][index]
                     else:
                         raise MappingDefinitionError(
@@ -213,7 +212,7 @@ class GrdmMapping():
                         link_list[is_link] = i + 1
                         results = []
                         results.extend(item)
-                    self._create_schema(definition, results, link_list)
+                    self._new_schema = self._create_schema(definition, results, link_list)
                 # 対応するリストが存在しない場合
                 else:
                     if len(source[final_key]) > 0 and 0 <= is_link < len(source[final_key]):
@@ -222,12 +221,12 @@ class GrdmMapping():
                         raise MappingDefinitionError(
                             f"指定されたインデックスが存在しません({schema_property})")
 
-                    self._create_schema(definition, results, link_list)
+                    self._new_schema = self._create_schema(definition, results, link_list)
 
             # 通常のリストの処理
             else:
                 results.extend(source.get(final_key, []))
-                self._create_schema(definition, results, link_list)
+                self._new_schema = self._create_schema(definition, results, link_list)
 
         # キーの数が不足している場合
         elif isinstance(source[final_key], dict):
@@ -239,19 +238,22 @@ class GrdmMapping():
             value = source.get(final_key)
             if value is not None:
                 results.append(value)
-            self._create_schema(definition, results, link_list)
+            self._new_schema = self._create_schema(definition, results, link_list)
 
-    def _create_schema(self, definition: dict, results: list, link_list: dict):
+    def _create_schema(self, definition: dict, results: list, link_list: dict) -> dict:
         """スキーマを作成し、データを挿入するメソッドです。
 
         Args:
             definition (dict): スキーマのプロパティ一つ当たりの定義
-            results (list):　ストレージから取得したデータ
-            link_list (dict):　対応するリストの情報
+            results (list): ストレージから取得したデータ
+            link_list (dict): 対応するリストの情報
+
+        return:
+            dict: データを挿入したスキーマ
 
         Raises:
-            MappingDefinitionError:　マッピング定義に誤りがある
-            MetadataTypeError:　データの型が変換できない
+            MappingDefinitionError: マッピング定義に誤りがある
+            MetadataTypeError: データの型が変換できない
 
         """
         schema_path, components = definition.items()
@@ -296,20 +298,20 @@ class GrdmMapping():
 
         # 最終キーの処理
         final_key = keys[-1]
-        types = components.get("type")
+        type = components.get("type")
         converted_results = []
         # データが存在する場合、型チェックを行う
         if results:
             try:
-                converted_results = self.convert_data_type(results, types)
+                converted_results = self._convert_data_type(results, type)
 
             except MappingDefinitionError as e:
                 raise MappingDefinitionError(
-                    f"type:{types}は有効な型ではありません({schema_path})") from e
+                    f"type:{type}は有効な型ではありません({schema_path})") from e
 
             except Exception as e:
                 raise MetadataTypeError(
-                    f"型変換エラー：{results}を{types}に変換できません({schema_path}):{e}") from e
+                    f"型変換エラー：{results}を{type}に変換できません({schema_path}):{e}") from e
 
         # スキーマの定義がリストの場合
         if "[]" in final_key:
@@ -321,28 +323,30 @@ class GrdmMapping():
         else:
             current_level[final_key] = converted_results[0] if converted_results else None
 
-    def convert_data_type(self, results: list, types: Optional[str]) -> list:
+        return current_level
+
+    def _convert_data_type(self, results: list, type: Optional[str]) -> list:
         """ストレージから取得したデータをスキーマ定義の要求する型に変換するメソッドです。
 
         Args:
-            results (list):　ストレージから取得したデータ
-            types (Optional[str]):　マッピング定義に記載されたスキーマ定義の要求する型
+            results (list): ストレージから取得したデータ
+            type (Optional[str]): マッピング定義に記載されたスキーマ定義の要求する型
 
         Returns:
-            list:　スキーマの要求する型に変換したデータ
+            list: スキーマの要求する型に変換したデータ
 
         Raises:
-            MetadataTypeError:　データの型が変換できない
-            MappingDefinitionError:　マッピング定義に誤りがある
+            MetadataTypeError: データの型が変換できない
+            MappingDefinitionError: マッピング定義に誤りがある
 
         """
         converted_results = []
         for result in results:
 
-            if types == "string":
+            if type == "string":
                 converted_results.append(str(result))
 
-            elif types == "boolean":
+            elif type == "boolean":
                 if isinstance(result, bool):
                     converted_results.append(result)
                 elif isinstance(result, str):
@@ -356,7 +360,7 @@ class GrdmMapping():
                 else:
                     raise MetadataTypeError()
 
-            elif types == "number":
+            elif type == "number":
                 converted_results.append(
                     float(result) if '.' in str(result) else int(result))
 

@@ -9,5 +9,5 @@ class MetadataManager():
 
     """
 
-    def get_metadata(self, schema: str, storage: str, token: str = None, project_id: str = None, filter_property: list = None) -> dict:
+    def get_metadata(self, schema: str, storage: str, token: str = None, project_id: str = None, filter_properties: list = None) -> dict:
         """引数で指定されたストレージからスキーマの定義に則ったメタデータを取得するメソッドです。"""
