@@ -59,17 +59,9 @@ class DefinitionManager():
             else:
                 return mapping_definition
 
-        except NotFoundMappingDefinitionError as e:
+        except (NotFoundMappingDefinitionError, NotFoundKeyError, MappingDefinitionError) as e:
             logger.error(e)
-            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません") from e
-
-        except NotFoundKeyError as e:
-            logger.error(e)
-            raise NotFoundKeyError("入力したスキーマのプロパティは定義されていません。") from e
-
-        except MappingDefinitionError as e:
-            logger.error(e)
-            raise MappingDefinitionError("マッピング定義ファイルの読み込みに失敗しました。") from e
+            raise
 
     def _read_mapping_definition(self, schema: str, storage: str) -> dict:
         """マッピング定義ファイルの読み取りを行うメソッドです。
@@ -82,7 +74,7 @@ class DefinitionManager():
             dict: マッピング定義
 
         Raises:
-            NotFoundMappingDefinitionError: 指定したマッピング定義ファイルが存在しない
+            NotFoundMappingDefinitionError: l指定したマッピング定義ファイルが存在しない
 
         """
         dir_path = '../data/mapping'
@@ -91,12 +83,12 @@ class DefinitionManager():
         file_path = os.path.join(dir_path, file_name)
 
         if not os.path.isfile(file_path):
-            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません")
+            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません。")
 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 mapping_definition = json.load(f)
         except Exception as e:
-            raise MappingDefinitionError("マッピング定義ファイルを読み込めません") from e
+            raise MappingDefinitionError("マッピング定義ファイルの読み込みに失敗しました。") from e
 
         return mapping_definition

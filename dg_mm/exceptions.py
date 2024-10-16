@@ -12,5 +12,5 @@ class NotFoundKeyError(Exception):
 class MappingDefinitionError(Exception):
     """マッピング定義に誤りがある場合のエラークラスです。"""
 
-class NotFoundSourceError(Exception):
-    """メタデータの取得先を特定できなかった場合のエラークラスです。"""
+class DataFormatError(Exception):
+    """データの形式に問題がある場合のエラーです。"""
