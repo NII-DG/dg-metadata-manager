@@ -174,7 +174,7 @@ class GrdmMapping():
         # 最終キーに対する処理
         final_key = keys[-1]
         return self._get_final_key_value(
-            new_schema, source, schema_property, list_definition, final_key, schema_link_list
+            new_schema, source, schema_property, components, final_key, schema_link_list
         )
 
     def _judge_key(
