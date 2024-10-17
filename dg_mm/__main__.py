@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import sys
 import traceback
 
@@ -25,7 +26,7 @@ def main():
         '--filter-file', dest='filter_file',
         help='スキーマの一部をファイルを用いて指定したい場合に使用する。スキーマのプロパティ一覧が書かれたjsonファイルのパスを指定する。filterと同時に指定した場合はこちらを優先する。')
     parser_get.add_argument(
-        '--file', help='ファイル出力先。通常は標準出力に出力されるメタデータをファイルに出力したい場合に使用する。既に存在するファイルには上書きする。')
+        '--file', help='ファイル出力先。通常は標準出力に出力されるメタデータをファイルに出力したい場合に使用する。既にファイルが存在する場合、上書きせずにエラーになる。')
     parser_get.set_defaults(func=get_metadata)
 
     try:
@@ -35,6 +36,12 @@ def main():
         else:
             parser.print_help()
     except MetadatamanagerError as e:
+        print(f"エラーが発生しました: {e}", file=sys.stderr)
+        return 1
+    except FileExistsError as e:
+        print(f"エラーが発生しました: {e}", file=sys.stderr)
+        return 1
+    except FileNotFoundError as e:
         print(f"エラーが発生しました: {e}", file=sys.stderr)
         return 1
     except Exception as e:
@@ -62,7 +69,17 @@ def get_metadata(args: argparse.Namespace):
     }
     mm = MetadataManger()
     result = mm.get_metadata(**params)
+
     if args.file is not None:
+        # 存在しないフォルダの場合エラーにする
+        dir_name = os.path.dirname(args.file)
+        if dir_name and not os.path.exists(dir_name):
+            raise FileNotFoundError(f"The directory '{dir_name}' does not exist.")
+
+        # 既に存在するファイルの場合エラーにする
+        if os.path.exists(args.file):
+            raise FileExistsError(f"The file '{args.file}' already exists")
+
         with open(args.file, 'w') as f:
             json.dump(result, f, indent=4, ensure_ascii=False)
     else:
