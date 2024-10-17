@@ -18,7 +18,7 @@ class MetadataManger():
     """
     _ACTIVE_STORAGES = {"GRDM": "GrdmMapping"}
 
-    def get_metadata(self, schema: str, storage: str, token: str = None, id: str = None, option: list = None) -> dict:
+    def get_metadata(self, schema: str, storage: str, token: str = None, id: str = None, filter_property: list = None) -> dict:
         """引数で指定されたストレージからスキーマの定義に則ったメタデータを取得するメソッドです。
 
         Args:
@@ -26,7 +26,7 @@ class MetadataManger():
             storage (str): ストレージの名称
             token (str, optional): ストレージの認証情報。 デフォルトはNone。
             id (str, optional): ストレージを特定する情報。 デフォルトはNone.
-            option (list, optional): スキーマの一部のキー。デフォルトはNone.
+            filter_property (list, optional): スキーマの一部のキー。デフォルトはNone.
 
         Returns:
             dict: マッピングしたメタデータ
@@ -39,6 +39,6 @@ class MetadataManger():
             "schema": schema,
             "token": token,
             "project_id": id,
-            "option": option
+            "filter_property": filter_property
         }
         return instance.mapping_metadata(**param)
