@@ -96,7 +96,7 @@ class GrdmMapping():
                     continue
 
                 try:
-                    storage_data = self._extract_and_insert_metadata(
+                    new_schema = self._extract_and_insert_metadata(
                         new_schema, source_data[source], schema_property, components, schema_link_list)
 
                 except NotFoundKeyError as e:
