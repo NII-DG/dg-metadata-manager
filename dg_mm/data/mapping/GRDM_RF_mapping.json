@@ -1,27 +1,41 @@
 {
     "researcher[].email[]": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.email",
+        "list": {"data" : "researcher"}
     },
     "researcher[].affiliation[].adress[]": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "value": null
     },
     "researcher[].affiliation[].name": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.employment.institution_ja",
+        "list": {"data" : "researcher",
+                "employment" : "affiliation"}
     },
     "researcher[].affiliation[].ror": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "value": null
+    },
+    "researcher[].name": {
+        "type": "string",
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.full_name",
+        "list": {"data" : "researcher"}
+    },
+    "researcher[].orcid": {
+        "type": "string",
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.social.orcid",
+        "list": {"data" : "researcher"}
+    },
+    "researcher[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+
     },
     "dmp.detaCreator[].email[]": {
         "type": "string",
@@ -553,21 +567,24 @@
     },
     "projectItem[].name": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:title-ja.value",
+        "list": {"files" : "",
+                "items": ""}
     },
     "projectItem[]description": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:data-description-ja.value",
+        "list": {"files" : "",
+                "items": ""}
     },
     "projectItem[].field": {
         "type": "string",
-        "source": null,
-        "value": null,
-        "list": {}
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:data-research-field.value",
+        "list": {"files" : "",
+                "items": ""}
     },
     "projectItem[].dataCreated": {
         "type": "string",
@@ -625,14 +642,14 @@
     },
     "name": {
         "type": "string",
-        "source": null,
-        "value": null,
+        "source": "project_info",
+        "value":"data.attributes.title",
         "list": {}
     },
     "description": {
         "type": "string",
-        "source": null,
-        "value": null,
+        "source": "project_info",
+        "value": "data.attributes.discription",
         "list": {}
     },
     "field": {
@@ -643,8 +660,8 @@
     },
     "url": {
         "type": "string",
-        "source": null,
-        "value": null,
+        "source": "project_info",
+        "value": "data.links.html",
         "list": {}
     },
     "raid": {
@@ -655,8 +672,8 @@
     },
     "dataStarted": {
         "type": "string",
-        "source": null,
-        "value": null,
+        "source": "project_info",
+        "value": "data.attributes.date_created",
         "list": {}
     },
     "accessRightsInformation": {

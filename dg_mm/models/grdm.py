@@ -141,7 +141,7 @@ class GrdmMapping():
 
     def _extract_and_insert_metadata(
         self, new_schema: dict, source: dict, schema_property: str,
-        components: dict, schema_link_list: dict, storage_keys: str) -> dict:
+        components: dict, schema_link_list: dict, storage_keys: list) -> dict:
         """メタデータの取り出しとスキーマへの挿入を行うメソッドです。
 
         マッピング定義で指定されたデータをストレージのデータから取り出し、スキーマへと挿入したものを返します。
@@ -152,7 +152,7 @@ class GrdmMapping():
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
             components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
             schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
-            storage_keys (str): ストレージから取得するデータまでのキーのリスト
+            storage_keys (list): ストレージから取得するデータまでのキーのリスト
 
         Returns:
             dict: 取得したデータを挿入したスキーマ
