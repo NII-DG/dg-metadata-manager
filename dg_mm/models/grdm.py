@@ -29,7 +29,6 @@ class GrdmMapping():
 
         Args:
             schema (str): スキーマを一意に定める文字列
-            storage (str): ストレージを一意に定める文字列
             token (str): GRDMの認証に用いるトークン
             project_id (str): GRDMのプロジェクトを一意に定めるID
             filter_properties (list): スキーマの絞り込みに用いるプロパティの一覧。デフォルトはNone
@@ -86,9 +85,10 @@ class GrdmMapping():
                 schema_link_list = {}
                 source = components.get("source")
                 storage_path = components.get("value")
-                type = components.get("type")
+                storage_keys = storage_path.split(".")
                 # 対応するデータがGRDMに存在しない場合
                 if storage_path is None:
+                    type = components.get("type")
                     storage_data = []
                     new_schema = self._add_property(
                         new_schema, schema_property, type, storage_data, schema_link_list)
@@ -96,7 +96,7 @@ class GrdmMapping():
 
                 try:
                     new_schema = self._extract_and_insert_metadata(
-                        new_schema, source_data[source], schema_property, components, schema_link_list)
+                        new_schema, source_data[source], schema_property, components, schema_link_list, storage_keys)
 
                 except NotFoundKeyError as e:
                     if isinstance(e.args[0], list):
@@ -141,7 +141,7 @@ class GrdmMapping():
 
     def _extract_and_insert_metadata(
         self, new_schema: dict, source: dict, schema_property: str,
-        components: dict, schema_link_list: dict, storage_keys: str = None) -> dict:
+        components: dict, schema_link_list: dict, storage_keys: str) -> dict:
         """メタデータの取り出しとスキーマへの挿入を行うメソッドです。
 
         マッピング定義で指定されたデータをストレージのデータから取り出し、スキーマへと挿入したものを返します。
@@ -152,17 +152,14 @@ class GrdmMapping():
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
             components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
             schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
-            storage_keys (str, optional): ストレージから取得するデータまでのキーをつなげた文字列。再帰的な呼び出しをされる際に引数として渡されます。デフォルトはNone
+            storage_keys (str): ストレージから取得するデータまでのキーのリスト
 
         Returns:
             dict: 取得したデータを挿入したスキーマ
 
         """
-        storage_path = storage_keys or components.get("value")
-        keys = storage_path.split(".")
-
         # キーを一つずつ取り出して処理を行う
-        for index, key in enumerate(keys[:-1]):
+        for index, key in enumerate(storage_keys[:-1]):
             source = self._check_and_handle_key_structure(
                 new_schema, source, schema_property, components, schema_link_list, index, key)
 
@@ -172,7 +169,7 @@ class GrdmMapping():
                 return new_schema
 
         # 最終キーに対する処理。キーの値を取り出し、スキーマに挿入したものを返します。
-        final_key = keys[-1]
+        final_key = storage_keys[-1]
         new_schema = self._get_and_insert_final_key_value(
             new_schema, source, schema_property, components, final_key, schema_link_list)
 
@@ -213,8 +210,7 @@ class GrdmMapping():
 
         # 値がdict構造の場合
         elif isinstance(source[key], dict):
-            list_definition = components.get("list")
-            if key not in list_definition:
+            if key not in components.get("list"):
                 source = source[key]
             else:
                 raise MappingDefinitionError(
@@ -231,7 +227,7 @@ class GrdmMapping():
         """リスト構造だった場合の処理を実行するメソッドです。
 
         スキーマに対応するリストが存在する場合は_extract_and_insert_metadataを再帰的に呼び出し、データの取り出しとスキーマへの挿入を行います。
-        存在しない場合は、list_definitionに記載されたインデックスのデータを返します。
+        存在しない場合は、マッピング定義で指定されたインデックスのデータを返します。
 
         Args:
             new_schema (dict): 取得したデータを挿入するスキーマ
@@ -250,8 +246,7 @@ class GrdmMapping():
             NotFoundKeyError: データの構造を示すキーが存在しない
 
         """
-        list_definition = components.get("list")
-        link_list_info = list_definition.get(key)
+        link_list_info = components.get("list").get(key)
         if link_list_info is None:
             raise MappingDefinitionError(f"リスト：{key}が定義されていません")
 
@@ -260,10 +255,10 @@ class GrdmMapping():
             error_keys = []
             for i, item in enumerate(source[key]):
                 schema_link_list[link_list_info] = i + 1
-                keys = components.get("value").split(".")
+                storage_keys = components.get("value").split(".")
                 try:
                     new_schema = self._extract_and_insert_metadata(
-                        new_schema, item, schema_property, components, schema_link_list, '.'.join(keys[index+1:]))
+                        new_schema, item, schema_property, components, schema_link_list, storage_keys)
 
 
                 except NotFoundKeyError as e:
@@ -285,7 +280,7 @@ class GrdmMapping():
 
     def _get_and_insert_final_key_value(
         self, new_schema: dict, source: dict, schema_property: str,
-        components: dict, final_key: str, schema_link_list: dict) -> Optional[list]:
+        components: dict, final_key: str, schema_link_list: dict) -> dict:
         """ストレージの最終キーの値を取得し、スキーマに挿入するメソッドです。
 
         Args:
