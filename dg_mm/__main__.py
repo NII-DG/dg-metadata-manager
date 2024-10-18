@@ -4,7 +4,7 @@ import os
 import sys
 import traceback
 
-from dg_mm.models.metadata_manager import MetadataManger
+from dg_mm.models.metadata_manager import MetadataManager
 from dg_mm.exceptions import MetadatamanagerError
 
 
@@ -67,7 +67,7 @@ def get_metadata(args: argparse.Namespace):
         'id': args.id,
         'option': args.filter
     }
-    mm = MetadataManger()
+    mm = MetadataManager()
     result = mm.get_metadata(**params)
 
     if args.file is not None:
