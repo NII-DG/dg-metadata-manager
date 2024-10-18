@@ -8,7 +8,7 @@ from dg_mm.exceptions import InvalidStorageError
 
 logger = getLogger(__name__)
 
-class MetadataManger():
+class MetadataManager():
     """メタデータの管理を行うクラスです。
 
     Attributes:
@@ -31,9 +31,9 @@ class MetadataManger():
         Returns:
             dict: マッピングしたメタデータ
         """
-        if storage not in MetadataManger._ACTIVE_STORAGES:
+        if storage not in MetadataManager._ACTIVE_STORAGES:
             raise InvalidStorageError("対応していないストレージが指定されました")
-        mapping_cls : BaseMapping = globals()[MetadataManger._ACTIVE_STORAGES[storage]]
+        mapping_cls : BaseMapping = globals()[MetadataManager._ACTIVE_STORAGES[storage]]
         instance = mapping_cls()
         param = {
             "schema": schema,

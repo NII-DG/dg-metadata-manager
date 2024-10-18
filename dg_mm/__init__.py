@@ -1,6 +1,6 @@
 from logging import getLogger, NullHandler
 
-from dg_mm.models.metadata_manager import MetadataManger
+from dg_mm.models.metadata_manager import MetadataManager
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
