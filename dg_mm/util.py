@@ -1,6 +1,6 @@
+import configparser
 import json
-from configparser import ConfigParser
-from pathlib import Path
+import pathlib
 
 
 class ReadPackageFile():
@@ -22,7 +22,7 @@ class ReadPackageFile():
             return json.load(f)
 
     @classmethod
-    def read_ini(cls, relative_path: str) -> ConfigParser:
+    def read_ini(cls, relative_path: str) -> configparser.ConfigParser:
         """iniファイルを読み込むメソッドです。
 
         Args:
@@ -33,12 +33,12 @@ class ReadPackageFile():
         """
 
         file_path = cls._get_absolute_path(relative_path)
-        ini_file = ConfigParser()
+        ini_file = configparser.ConfigParser()
         ini_file.read(file_path)
         return ini_file
 
     @classmethod
-    def _get_absolute_path(cls, relative_path: str):
+    def _get_absolute_path(cls, relative_path: str) -> str:
         """ファイルの絶対パスを取得するメソッドです。
 
         Args:
@@ -48,6 +48,6 @@ class ReadPackageFile():
             str: 絶対パス
         """
 
-        package_path = Path(__file__).resolve().parent
+        package_path = pathlib.Path(__file__).resolve().parent
         file_path = package_path.joinpath(relative_path)
         return file_path
