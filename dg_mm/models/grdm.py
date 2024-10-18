@@ -96,11 +96,8 @@ class GrdmMapping():
                     continue
 
                 try:
-                    storage_data = self._extract_metadata(
+                    storage_data = self._extract_and_insert_metadata(
                         new_schema, source_data[source], schema_property, components, schema_link_list)
-
-                    if isinstance(storage_data, list):
-                        new_schema = self._add_property(new_schema, schema_property, type, storage_data, schema_link_list)
 
                 except NotFoundKeyError as e:
                     if isinstance(e.args[0], list):
@@ -143,20 +140,23 @@ class GrdmMapping():
 
         return list(metadata_sources)
 
-    def _extract_metadata(
+    def _extract_and_insert_metadata(
         self, new_schema: dict, source: dict, schema_property: str,
-        components: dict, schema_link_list: dict, storage_keys: str = None) -> Optional[list]:
-        """特定のメタデータを取り出すメソッドです。
+        components: dict, schema_link_list: dict, storage_keys: str = None) -> dict:
+        """メタデータの取り出しとスキーマへの挿入を行うメソッドです。
+
+        定義で指定されたデータをストレージのデータから取り出し、スキーマへと挿入したものを返します。
 
         Args:
             new_schema (dict): 取得したデータを挿入するスキーマ
             source (dict): マッピング定義に記載された取得先から得たストレージのデータ
-            definition (dict): スキーマのプロパティ一つ当たりの定義
-            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持している。
-            storage_keys (str, optional): ストレージの取得するデータまでのキーをつなげたもの。再帰的な呼び出しをされる際に引数として渡される。デフォルトはNone
+            schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
+            components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
+            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
+            storage_keys (str, optional): ストレージの取得するデータまでのキーをつなげた文字列。再帰的な呼び出しをされる際に引数として渡されます。デフォルトはNone
 
         Returns:
-            dict: データを挿入したスキーマ
+            dict: 取得したデータを挿入したスキーマ
 
         """
         list_definition = components.get("list")
@@ -168,34 +168,37 @@ class GrdmMapping():
             source = self._check_key_list(
                 new_schema, source, schema_property, components, schema_link_list, list_definition, index, key)
 
-            #再帰的な呼び出しが実行された場合は戻り値を返して終了
+            #ストレージのデータにあるリストと対応するリストがスキーマに存在する場合、再帰的に呼び出してデータの取り出しと挿入を行った後、Noneを返します。
+            # そのため、sourceがNoneの場合は以降のデータ取り出し、挿入処理をスキップします。
             if source:
-                return
+                return new_schema
 
-        # 最終キーに対する処理
+        # 最終キーに対する処理。キーの値を取り出し、戻り値として返します。
         final_key = keys[-1]
-        storage_data = self._get_final_key_value(
+        new_schema = self._get_final_key_value(
             new_schema, source, schema_property, components, final_key, schema_link_list)
 
-        return storage_data
+        return new_schema
 
     def _check_key_list(
         self, new_schema: dict, source: dict, schema_property: str, components: dict,
         schema_link_list: dict, list_definition: dict, index: int, key: str) -> Optional[dict]:
         """キーの値がlistかdictかを判定し、対応した処理を実行するメソッドです。
 
+        listだった場合は_handle_listを呼び出しリストの定義に応じた個別の処理を実行し、dictだった場合はsourceをそのキーの値に更新します。
+
         Args:
             new_schema (dict): 取得したデータを挿入するスキーマ
             source (dict): マッピング定義に記載された取得先から得たストレージのデータ
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
-            components (dict): マッピング情報
-            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持している。
+            components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
+            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
             list_definition (dict): ストレージのリストと対応したリストがスキーマに存在するかの情報。
-            index (int): 処理しているキーのインデックス
-            key (str): 処理しているキー
+            index (int): 処理中のキーのインデックス
+            key (str): 処理中のキー
 
         Returns:
-            Optional[dict]: データを挿入したスキーマ。再帰的な呼び出しを実行した場合のみ返す。
+            Optional[dict]: ストレージのデータから処理中のキーで検索した値のデータ。_handle_listで再帰的な処理が実行された場合はNoneを返します。
 
         Raises:
             NotFoundKeyError: データの構造を示すキーが存在しない
@@ -229,18 +232,21 @@ class GrdmMapping():
         list_definition: dict, index: int, key: str) -> Optional[dict]:
         """リスト構造だった場合の処理を実行するメソッドです。
 
+        スキーマに対応するリストが存在する場合は再帰的な呼び出しを行い、取り出したデータをスキーマに挿入します。
+        存在しない場合は、list_definitionに記載されたインデックスのデータを返します。
+
         Args:
             new_schema (dict): 取得したデータを挿入するスキーマ
             source (dict): マッピング定義に記載された取得先から得たストレージのデータ
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
-            components (dict): マッピング情報
-            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持している。
+            components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
+            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
             list_definition (dict): ストレージのリストと対応したリストがスキーマに存在するかの情報。
-            index (int): 処理しているキーのインデックス
-            key (str): 処理しているキー
+            index (int): 処理中のキーのインデックス
+            key (str): 処理中のキー
 
         Returns:
-            Optional[dict]: データを挿入したスキーマ。再帰的な呼び出しを実行した場合のみ返す。
+            Optional[dict]: ストレージデータから処理中のキーで検索して得られたリストの指定されたインデックスのデータ。再帰的な呼びだしを行った場合はNoneを返します。
 
         Raises:
             MappingDefinitionError: マッピング定義に誤りがある
@@ -258,11 +264,9 @@ class GrdmMapping():
                 schema_link_list[link_list_info] = i + 1
                 keys = components.get("value").split(".")
                 try:
-                    storage_data = self._extract_metadata(
+                    new_schema = self._extract_and_insert_metadata(
                         new_schema, item, schema_property, components, schema_link_list, '.'.join(keys[index+1:]))
 
-                    new_schema = self._add_property(
-                        new_schema, schema_property, type, storage_data, schema_link_list)
 
                 except NotFoundKeyError as e:
                     error_keys.append(str(e))
@@ -284,15 +288,15 @@ class GrdmMapping():
     def _get_final_key_value(
         self, new_schema: dict, source: dict, schema_property: str,
         components: dict, final_key: str, schema_link_list: dict) -> Optional[list]:
-        """ストレージの最終キーの値を取得するメソッドです。
+        """ストレージの最終キーの値を取得し、スキーマに挿入するメソッドです。
 
         Args:
             new_schema (dict): 取得したデータを挿入するスキーマ
             source (dict): マッピング定義に記載された取得先から得たストレージのデータ
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
-            components (dict): マッピング情報
+            components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
             final_key (str): 取得するデータのキー
-            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持している。
+            schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
 
         Returns:
             dict: データを挿入したスキーマ
@@ -318,21 +322,25 @@ class GrdmMapping():
                         storage_data = []
                         storage_data.extend(item)
                     new_schema = self._add_property(new_schema, schema_property, type, storage_data, schema_link_list)
-                    return
+                    return new_schema
                 # 対応するリストが存在しない場合
                 else:
                     if len(source[final_key]) > 0 and 0 <= link_list_info < len(source[final_key]):
                         storage_data.extend(source[final_key][link_list_info])
+                        new_schema = self._add_property(
+                            new_schema, schema_property, type, storage_data, schema_link_list)
                     else:
                         raise MappingDefinitionError(
                             f"指定されたインデックスが存在しません({schema_property})")
 
-                    return storage_data
+                    return new_schema
 
             # 通常のリストの処理
             else:
                 storage_data.extend(source.get(final_key, []))
-                return storage_data
+                new_schema = self._add_property(
+                            new_schema, schema_property, type, storage_data, schema_link_list)
+                return new_schema
 
         # キーの数が不足している場合
         elif isinstance(source[final_key], dict):
@@ -344,7 +352,9 @@ class GrdmMapping():
             value = source.get(final_key)
             if value is not None:
                 storage_data.append(value)
-            return storage_data
+            new_schema = self._add_property(
+                            new_schema, schema_property, type, storage_data, schema_link_list)
+            return new_schema
 
     def _add_property(
         self, new_schema: dict, schema_property: str,
@@ -352,7 +362,7 @@ class GrdmMapping():
         """スキーマを作成し、データを挿入するメソッドです。
 
         Args:
-            new_schema(dict): データを加えるスキーマ
+            new_schema(dict): データを挿入するスキーマ
             schema_property(str): スキーマのプロパティまでのキーをつなげた固有の文字列
             type(Optional[str]): スキーマの要求するデータの型
             storage_data (list): ストレージから取得したデータ
@@ -434,7 +444,7 @@ class GrdmMapping():
         return new_schema
 
     def _convert_data_type(self, data: list, type: Optional[str]) -> list:
-        """ストレージから取得したデータをスキーマ定義の要求する型に変換するメソッドです。
+        """データの型を要求された型に変換するメソッドです。
 
         Args:
             data (list): 型の変換を行うデータ
