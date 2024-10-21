@@ -4,11 +4,12 @@ from logging import getLogger
 
 from dg_mm.models.base import BaseMapping
 from dg_mm.models.grdm import GrdmMapping
-from dg_mm.exceptions import InvalidStorageError
+from dg_mm.errors import InvalidStorageError
 
 logger = getLogger(__name__)
 
-class MetadataManger():
+
+class MetadataManager():
     """メタデータの管理を行うクラスです。
 
     Attributes:
@@ -31,9 +32,9 @@ class MetadataManger():
         Returns:
             dict: マッピングしたメタデータ
         """
-        if storage not in MetadataManger._ACTIVE_STORAGES:
+        if storage not in MetadataManager._ACTIVE_STORAGES:
             raise InvalidStorageError("対応していないストレージが指定されました")
-        mapping_cls : BaseMapping = globals()[MetadataManger._ACTIVE_STORAGES[storage]]
+        mapping_cls: BaseMapping = globals()[MetadataManager._ACTIVE_STORAGES[storage]]
         instance = mapping_cls()
         param = {
             "schema": schema,

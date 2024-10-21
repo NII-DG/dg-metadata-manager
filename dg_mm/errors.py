@@ -1,3 +1,29 @@
+"""エラーのモジュールです。"""
+
+class NotFoundMappingDefinitionError(Exception):
+    """マッピング定義ファイルが見つからないエラーのクラスです。"""
+    pass
+
+class MetadataTypeError(Exception):
+    """データの型が間違っているエラーのクラスです。"""
+    pass
+
+
+class NotFoundKeyError(Exception):
+    """キーが見つからない場合のエラークラスです。"""
+    pass
+
+
+class MappingDefinitionError(Exception):
+    """マッピング定義に誤りがある場合のエラークラスです。"""
+    pass
+
+
+class DataFormatError(Exception):
+    """データの形式に問題がある場合のエラーです。"""
+    pass
+
+
 class MetadatamanagerError(Exception):
     """MetadataManagerのエラー"""
     pass
