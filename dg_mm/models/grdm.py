@@ -1,6 +1,6 @@
 """GRDMストレージに関するモジュールです。"""
 
-from typing import Optional
+from typing import Optional, Any
 from logging import getLogger
 import requests
 
@@ -15,6 +15,7 @@ from dg_mm.errors import (
     MappingDefinitionError,
     MetadataTypeError,
     NotFoundKeyError,
+    MetadataNotFoundError
 )
 from dg_mm.util import PackageFileReader
 
@@ -31,7 +32,7 @@ class GrdmMapping():
 
     """
 
-    def mapping_metadata(self, schema: str, token: str, project_id: str, filter_properties: list = None) -> dict:
+    def mapping_metadata(self, schema: str, token: str, project_id: str, filter_properties: list = None, project_metadata_title: str = None) -> dict:
         """スキーマの定義に従いマッピングを行うメソッドです。
 
         Args:
@@ -39,6 +40,7 @@ class GrdmMapping():
             token (str): GRDMの認証に用いるトークン
             project_id (str): GRDMのプロジェクトを一意に定めるID
             filter_properties (list): スキーマの絞り込みに用いるプロパティの一覧。デフォルトはNone
+            project_metadata_title (str): プロジェクトメタデータのタイトル。デフォルトはNone.
 
         Returns:
             dict: スキーマにデータを挿入したもの
@@ -77,7 +79,7 @@ class GrdmMapping():
                 error_sources = []
                 for source in metadata_sources:
                     if source in source_mapping:
-                        source_data[source] = source_mapping[source]()
+                        source_data[source] = source_mapping[source](title=project_metadata_title)
                     else:
                         error_sources.append(source)
                 if error_sources:
@@ -613,16 +615,17 @@ class GrdmAccess():
             raise APIError("APIリクエストがタイムアウトしました")
         return bool(result)
 
-    def get_project_metadata(self) -> dict:
+    def get_project_metadata(self, title: str = None, **kwargs: Any) -> dict:
         """プロジェクトメタデータを取得するメソッドです。
 
-        登録されているプロジェクトメタデータの数が11個件以上の場合は1回目のレスポンスの"data"に2回目以降のレスポンスの"data"を末尾に追加する。
+        Args:
+            title(str): プロジェクトメタデータのタイトル
+            **kwargs(Any): 使用しない引数の受け皿
 
         Returns:
-            dict: APIから取得したプロジェクトメタデータを返す。11件以上の場合は以下の形式になる。
-                - "data": 登録されているすべてのプロジェクトメタデータが含まれる。
-                - "links": 1ページ目の情報が入っている。
-                - "meta": 1ページ目の情報が入っている。
+            dict: APIから取得したプロジェクトメタデータを返す。
+                titleが指定されている場合は、titleが一致するデータのみが含まれるレスポンスにして返す。
+                titleが指定されていない場合は、作成日が最も新しいデータのみが含まれるレスポンスにして返す。
 
         Raises:
             UnauthorizedError:認証処理を実行せずに実行した場合のエラー
@@ -635,20 +638,32 @@ class GrdmAccess():
         url = base_url.format(domain=self._domain, project_id=self._project_id)
         headers = {'Authorization': f'Bearer {self._token}'}
         request_count = 0
-        result = None
+        target = None
         try:
-            while url:
+            while not target:
                 response = requests.get(url, headers=headers, timeout=self._timeout)
                 response.raise_for_status()
                 data = response.json()
-                if result is None:
-                    result = data
+
+                if title is None:
+                    target = data["data"][0]
                 else:
-                    result["data"].extend(data["data"])
+                    for item in data["data"]:
+                        if item["attributes"]["title"] == title:
+                            target = item
+                            break
+                if target:
+                    data["data"].clear()
+                    data["data"].append(target)
+                    return data
+
                 url = data["links"].get("next")
                 request_count += 1
+                if url is None:
+                    raise MetadataNotFoundError("指定したプロジェクトメタデータが存在しません")
                 if request_count >= self._max_requests:
                     raise APIError("リクエスト回数が上限を超えました")
+
         except requests.exceptions.HTTPError as e:
             if response.status_code >= 500:
                 logger.error(f"API server error: {e}")
@@ -659,13 +674,16 @@ class GrdmAccess():
         except requests.exceptions.Timeout as e:
             logger.error(f"API request timeout: {e}")
             raise APIError("APIリクエストがタイムアウトしました")
-        return result
 
-    def get_file_metadata(self) -> dict:
+    def get_file_metadata(self, **kwargs: Any) -> dict:
         """ファイルメタデータを取得するメソッドです。
+
+        Args:
+            **kwargs(Any): 使用しない引数の受け皿
 
         Returns:
             dict: APIから取得したファイルメタデータを返す
+
         Raises:
             UnauthorizedError: 認証処理を実行せずに実行した場合のエラー
             APIError:APIのサーバーエラー、タイムアウト
@@ -695,8 +713,11 @@ class GrdmAccess():
             raise APIError("APIリクエストがタイムアウトしました")
         return result
 
-    def get_project_info(self) -> dict:
+    def get_project_info(self, **kwargs: Any) -> dict:
         """プロジェクト情報を取得するメソッドです。
+
+        Args:
+            **kwargs(Any): 使用しない引数の受け皿
 
         Returns:
             dict: APIから取得したプロジェクト情報を返す
@@ -727,10 +748,13 @@ class GrdmAccess():
             raise APIError("APIリクエストがタイムアウトしました")
         return result
 
-    def get_member_info(self) -> dict:
+    def get_member_info(self, **kwargs: Any) -> dict:
         """メンバー情報を取得するメソッドです。
 
         メンバーが11人以上の場合は1回目のレスポンスの"data"に2回目以降のレスポンスの"data"を末尾に追加する。
+
+        Args:
+            **kwargs(Any): 使用しない引数の受け皿
 
         Returns:
             dict: APIから取得したメンバー情報を返す。11件以上の場合は以下の形式になる。

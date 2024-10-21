@@ -57,3 +57,7 @@ class InvalidProjectError(MetadatamanagerError):
 class InvalidStorageError(MetadatamanagerError):
     """対応していないストレージを指定した場合のエラー"""
     pass
+
+class MetadataNotFoundError(MetadatamanagerError):
+    """指定されたタイトルのプロジェクトメタデータが見つからなかった場合のエラー"""
+    pass
