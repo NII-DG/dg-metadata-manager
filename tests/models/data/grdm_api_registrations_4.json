@@ -1,0 +1,21 @@
+{
+    "data": [
+        {
+            "id": "aaaaa",
+            "type": "registrations"
+        }
+    ],
+    "links": {
+        "first": "first page url",
+        "last": null,
+        "prev": "prev page url",
+        "next": null,
+        "meta": {
+            "total": 11,
+            "per_page": 10
+        }
+    },
+    "meta": {
+        "version": "2.0"
+    }
+}
