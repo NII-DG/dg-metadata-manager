@@ -5,7 +5,7 @@ import sys
 import traceback
 
 from dg_mm.models.metadata_manager import MetadataManager
-from dg_mm.exceptions import MetadatamanagerError
+from dg_mm.errors import MetadatamanagerError
 
 
 def main():
