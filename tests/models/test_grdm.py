@@ -5,14 +5,15 @@ import pytest
 import requests
 
 from dg_mm.models.grdm import GrdmAccess
-from dg_mm.exceptions import (
+from dg_mm.errors import (
     InvalidTokenError,
     AccessDeniedError,
     APIError,
-    InvalidProjectError
+    InvalidProjectError,
+    UnauthorizedError
 )
 
-@pytest.fixture
+
 def create_mock_response():
     def _create_mock_response(code, body = None):
         response = requests.models.Response()
@@ -98,7 +99,7 @@ class TestGrdmAccess():
         assert actual == False
         assert target_class._is_authenticated == False
 
-    def test__check_token_valid_1(self, mocker):
+    def test__check_token_valid_success_1(self, mocker):
         # モック化
         api_res = read_json('tests/models/data/grdm_api_profile_1.json')
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
@@ -112,7 +113,7 @@ class TestGrdmAccess():
         # 結果の確認
         assert actual == True
 
-    def test__check_token_valid_2(self, mocker):
+    def test__check_token_valid_failure_1(self, mocker):
         # モック化
         mocker.patch('requests.get', return_value=create_mock_response(401))
 
@@ -123,7 +124,7 @@ class TestGrdmAccess():
         with pytest.raises(InvalidTokenError, match="認証に失敗しました"):
             target_class._check_token_valid()
 
-    def test__check_token_valid_3(self, mocker):
+    def test__check_token_valid_failure_2(self, mocker):
         # モック化
         api_res = read_json('tests/models/data/grdm_api_profile_2.json')
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
@@ -135,18 +136,7 @@ class TestGrdmAccess():
         with pytest.raises(AccessDeniedError, match="トークンのアクセス権が不足しています"):
             target_class._check_token_valid()
 
-    def test__check_token_valid_4(self, mocker):
-        # モック化
-        mocker.patch('requests.get', return_value=create_mock_response(500))
-
-        # テスト実行
-        target_class = GrdmAccess()
-        target_class._token = "invalid_token"
-
-        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
-            target_class._check_token_valid()
-
-    def test__check_token_valid_5(self, mocker):
+    def test__check_token_valid_failure_3(self, mocker):
         # モック化
         mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
 
@@ -157,7 +147,18 @@ class TestGrdmAccess():
         with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
             target_class._check_token_valid()
 
-    def test__check_project_id_valid_1(self, mocker):
+    def test__check_token_valid_failure_4(self, mocker):
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "invalid_token"
+
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            target_class._check_token_valid()
+
+    def test__check_project_id_valid_success_1(self, mocker):
         # モック化
         api_res = read_json('tests/models/data/grdm_api_node_1.json')
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
@@ -172,7 +173,7 @@ class TestGrdmAccess():
         # 結果の確認
         assert actual == True
 
-    def test__check_project_id_valid_2(self, mocker):
+    def test__check_project_id_valid_failure_1(self, mocker):
         # モック化
         mocker.patch('requests.get', return_value=create_mock_response(404))
 
@@ -184,7 +185,7 @@ class TestGrdmAccess():
         with pytest.raises(InvalidProjectError, match="プロジェクトが存在しません"):
             target_class._check_project_id_valid()
 
-    def test__check_project_id_valid_3(self, mocker):
+    def test__check_project_id_valid_failure_2(self, mocker):
         # モック化
         mocker.patch('requests.get', return_value=create_mock_response(403))
 
@@ -196,7 +197,7 @@ class TestGrdmAccess():
         with pytest.raises(AccessDeniedError, match="プロジェクトへのアクセス権がありません"):
             target_class._check_project_id_valid()
 
-    def test__check_project_id_valid_4(self, mocker):
+    def test__check_project_id_valid_failure_3(self, mocker):
         # モック化
         mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
 
@@ -208,9 +209,9 @@ class TestGrdmAccess():
         with pytest.raises(AccessDeniedError, match="APIリクエストがタイムアウトしました"):
             target_class._check_project_id_valid()
 
-    def test_get_project_metadata_1(self, mocker, authorized_grdm_access):
+    def test_get_project_metadata_success_1(self, mocker, authorized_grdm_access):
         # モック化
-        api_res = read_json('tests/models/data/grdm_api_registrations_1.json')
+        api_res = read_json('tests/models/data/grdm_api_registrations_1.json')  # プロジェクトメタデータが1件登録されている場合のレスポンス
         mock_obj = mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
@@ -221,9 +222,9 @@ class TestGrdmAccess():
         assert len(actual["data"]) == 1
         assert mock_obj.call_count == 1
 
-    def test_get_project_metadata_2(self, mocker, authorized_grdm_access):
+    def test_get_project_metadata_success_2(self, mocker, authorized_grdm_access):
         # モック化
-        api_res = read_json('tests/models/data/grdm_api_registrations_2.json')
+        api_res = read_json('tests/models/data/grdm_api_registrations_2.json')  # プロジェクトメタデータが2件登録されている場合のレスポンス
         mock_obj = mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
@@ -234,10 +235,10 @@ class TestGrdmAccess():
         assert len(actual["data"]) == 2
         assert mock_obj.call_count == 1
 
-    def test_get_project_metadata_3(self, mocker, authorized_grdm_access):
+    def test_get_project_metadata_success_3(self, mocker, authorized_grdm_access):
         # モック化
-        res_body1 = read_json('tests/models/data/grdm_api_registrations_3.json')
-        res_body2 = read_json('tests/models/data/grdm_api_registrations_4.json')
+        res_body1 = read_json('tests/models/data/grdm_api_registrations_3.json')    # プロジェクトメタデータが11件登録されている場合の1回目のレスポンス
+        res_body2 = read_json('tests/models/data/grdm_api_registrations_4.json')    # プロジェクトメタデータが11件登録されている場合の2回目のレスポンス
         res1 = create_mock_response(200, res_body1)
         res2 = create_mock_response(200, res_body2)
         mock_obj = mocker.patch('requests.get', side_effect=[res1, res2])
@@ -246,14 +247,14 @@ class TestGrdmAccess():
         actual = authorized_grdm_access.get_project_metadata()
 
         # 結果の確認
-        expected = read_json('tests/models/data/grdm_api_registrations_5.json')
+        expected = read_json('tests/models/data/grdm_api_registrations_5.json') # dataが11件のデータ
         assert actual == expected
         assert len(actual["data"]) == 11
         assert mock_obj.call_count == 2
 
-    def test_get_project_metadata_4(self, mocker, authorized_grdm_access):
+    def test_get_project_metadata_success_4(self, mocker, authorized_grdm_access):
         # モック化
-        api_res = read_json('tests/models/data/grdm_api_registrations_6.json')
+        api_res = read_json('tests/models/data/grdm_api_registrations_6.json')  # プロジェクトメタデータが登録されていない場合のレスポンス
         mock_obj = mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
@@ -264,13 +265,36 @@ class TestGrdmAccess():
         assert len(actual["data"]) == 0
         assert mock_obj.call_count == 1
 
+    def test_get_project_metadata_failure_1(self):
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_project_metadata()
+
+    def test_get_project_metadata_failure_2(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(200))
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            authorized_grdm_access.get_project_metadata()
+
+    def test_get_project_metadata_failure_3(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            authorized_grdm_access.get_project_metadata()
+
     def test_get_file_metadata_1(self, mocker, authorized_grdm_access):
         # モック化
         api_res = read_json('tests/models/data/grdm_api_file_metadata_1.json')  # ファイルメタデータが1件登録されている場合のレスポンス
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_file_metadata()
 
         # 結果の確認
         assert actual == api_res
@@ -282,7 +306,7 @@ class TestGrdmAccess():
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_file_metadata()
 
         # 結果の確認
         assert actual == api_res
@@ -294,7 +318,7 @@ class TestGrdmAccess():
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_file_metadata()
 
         # 結果の確認
         assert actual == api_res
@@ -305,22 +329,67 @@ class TestGrdmAccess():
         mocker.patch('requests.get', return_value=create_mock_response(400))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_file_metadata()
 
         # 結果の確認
-        assert actual == []
-        # assert len(actual["data"]["attributes"]["files"]) == 0    # TODO: 同様の処理でKeyErrorになることへの対処
+        assert actual == {}
 
-    def test_get_project_info_1(self, mocker, authorized_grdm_access):
+    def test_get_file_metadata_failure_1(self):
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_file_metadata()
+
+    def test_get_file_metadata_failure_2(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(200))
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            authorized_grdm_access.get_file_metadata()
+
+    def test_get_file_metadata_failure_3(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            authorized_grdm_access.get_file_metadata()
+
+    def test_get_project_info_success_1(self, mocker, authorized_grdm_access):
         # モック化
         api_res = read_json('tests/models/data/grdm_api_file_metadata_3.json')  # プロジェクト情報の正常なレスポンス
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_project_info()
 
         # 結果の確認
         assert actual == api_res
+
+    def test_get_project_info_failure_1(self):
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_project_info()
+
+    def test_get_project_info_failure_2(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(200))
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            authorized_grdm_access.get_project_info()
+
+    def test_get_project_info_failure_3(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            authorized_grdm_access.get_project_info()
 
     def test_get_member_info_1(self, mocker, authorized_grdm_access):
         # モック化
@@ -328,7 +397,7 @@ class TestGrdmAccess():
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_member_info()
 
         # 結果の確認
         assert actual == api_res
@@ -340,7 +409,7 @@ class TestGrdmAccess():
         mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_member_info()
 
         # 結果の確認
         assert actual == api_res
@@ -355,7 +424,7 @@ class TestGrdmAccess():
         mocker.patch('requests.get', side_effext=[res1, res2])
 
         # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
+        actual = authorized_grdm_access.get_member_info()
 
         # 結果の確認
         assert len(actual["data"]) == 11
