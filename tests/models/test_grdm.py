@@ -14,13 +14,11 @@ from dg_mm.errors import (
 )
 
 
-def create_mock_response():
-    def _create_mock_response(code, body = None):
-        response = requests.models.Response()
-        response.status_code = code
-        response.json = Mock(return_value=body)
-        return response
-    return _create_mock_response
+def create_mock_response(code, body = None):
+    response = requests.models.Response()
+    response.status_code = code
+    response.json = Mock(return_value=body)
+    return response
 
 
 def read_json(path):
@@ -206,7 +204,7 @@ class TestGrdmAccess():
         target_class._token = "valid_token"
         target_class._project_id = "valid_project_id"
 
-        with pytest.raises(AccessDeniedError, match="APIリクエストがタイムアウトしました"):
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
             target_class._check_project_id_valid()
 
     def test_get_project_metadata_success_1(self, mocker, authorized_grdm_access):
@@ -274,7 +272,7 @@ class TestGrdmAccess():
 
     def test_get_project_metadata_failure_2(self, mocker, authorized_grdm_access):
         # モック化
-        mocker.patch('requests.get', return_value=create_mock_response(200))
+        mocker.patch('requests.get', return_value=create_mock_response(500))
 
         # テスト実行
         with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
@@ -343,7 +341,7 @@ class TestGrdmAccess():
 
     def test_get_file_metadata_failure_2(self, mocker, authorized_grdm_access):
         # モック化
-        mocker.patch('requests.get', return_value=create_mock_response(200))
+        mocker.patch('requests.get', return_value=create_mock_response(500))
 
         # テスト実行
         with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
@@ -377,7 +375,7 @@ class TestGrdmAccess():
 
     def test_get_project_info_failure_2(self, mocker, authorized_grdm_access):
         # モック化
-        mocker.patch('requests.get', return_value=create_mock_response(200))
+        mocker.patch('requests.get', return_value=create_mock_response(500))
 
         # テスト実行
         with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
@@ -421,10 +419,11 @@ class TestGrdmAccess():
         api_res2 = read_json('tests/models/data/grdm_api_contributors_4.json')  # メンバー情報が11件登録されている場合の2回目のレスポンス
         res1 = create_mock_response(200, api_res1)
         res2 = create_mock_response(200, api_res2)
-        mocker.patch('requests.get', side_effext=[res1, res2])
+        mock_obj = mocker.patch('requests.get', side_effext=[res1, res2])
 
         # テスト実行
         actual = authorized_grdm_access.get_member_info()
 
         # 結果の確認
         assert len(actual["data"]) == 11
+        assert mock_obj.call_count == 2
