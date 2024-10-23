@@ -5,7 +5,7 @@ import sys
 import traceback
 
 from dg_mm.models.metadata_manager import MetadataManager
-from dg_mm.exceptions import MetadatamanagerError
+from dg_mm.errors import MetadatamanagerError
 
 
 def main():
@@ -27,6 +27,8 @@ def main():
         help='スキーマの一部をファイルを用いて指定したい場合に使用する。スキーマのプロパティ一覧が書かれたjsonファイルのパスを指定する。filterと同時に指定した場合はこちらを優先する。')
     parser_get.add_argument(
         '--file', help='ファイル出力先。通常は標準出力に出力されるメタデータをファイルに出力したい場合に使用する。既にファイルが存在する場合、上書きせずにエラーになる。')
+    parser_get.add_argument(
+        '--project-metadata-id', dest='project_metadata_id', help='GRDMのプロジェクトメタデータを指定する。指定しない場合は作成日が一番新しいプロジェクトメタデータを取得する。')
     parser_get.set_defaults(func=get_metadata)
 
     try:
@@ -65,7 +67,8 @@ def get_metadata(args: argparse.Namespace):
         'storage': args.storage,
         'token': args.token,
         'id': args.id,
-        'option': args.filter
+        'filter_properties': args.filter,
+        'project_metadata_id': args.project_metadata_id
     }
     mm = MetadataManager()
     result = mm.get_metadata(**params)

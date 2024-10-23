@@ -4,9 +4,10 @@ from logging import getLogger
 
 from dg_mm.models.base import BaseMapping
 from dg_mm.models.grdm import GrdmMapping
-from dg_mm.exceptions import InvalidStorageError
+from dg_mm.errors import InvalidStorageError
 
 logger = getLogger(__name__)
+
 
 class MetadataManager():
     """メタデータの管理を行うクラスです。
@@ -18,7 +19,7 @@ class MetadataManager():
     """
     _ACTIVE_STORAGES = {"GRDM": "GrdmMapping"}
 
-    def get_metadata(self, schema: str, storage: str, token: str = None, id: str = None, filter_property: list = None) -> dict:
+    def get_metadata(self, schema: str, storage: str, token: str = None, id: str = None, filter_properties: list = None, project_metadata_id: str = None) -> dict:
         """引数で指定されたストレージからスキーマの定義に則ったメタデータを取得するメソッドです。
 
         Args:
@@ -26,19 +27,21 @@ class MetadataManager():
             storage (str): ストレージの名称
             token (str, optional): ストレージの認証情報。 デフォルトはNone。
             id (str, optional): ストレージを特定する情報。 デフォルトはNone.
-            filter_property (list, optional): スキーマの一部のキー。デフォルトはNone.
+            filter_properties (list, optional): スキーマの一部のキー。デフォルトはNone.
+            project_metadata_id (str): プロジェクトメタデータのid。デフォルトはNone.
 
         Returns:
             dict: マッピングしたメタデータ
         """
         if storage not in MetadataManager._ACTIVE_STORAGES:
             raise InvalidStorageError("対応していないストレージが指定されました")
-        mapping_cls : BaseMapping = globals()[MetadataManager._ACTIVE_STORAGES[storage]]
+        mapping_cls: BaseMapping = globals()[MetadataManager._ACTIVE_STORAGES[storage]]
         instance = mapping_cls()
         param = {
             "schema": schema,
             "token": token,
             "project_id": id,
-            "filter_property": filter_property
+            "filter_properties": filter_properties,
+            "project_metadata_id": project_metadata_id
         }
         return instance.mapping_metadata(**param)

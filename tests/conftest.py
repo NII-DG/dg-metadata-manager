@@ -5,6 +5,24 @@ import pytest
 
 
 @pytest.fixture
+def create_dummy_file():
+    path = 'dg_mm/data/exist.txt'
+
+    # ファイル作成
+    with open(path, mode='w') as f:
+        f.write('dummy text')
+
+    yield {
+        'file': 'data/exist.txt',
+        'dir': 'data',
+        'not_exist': 'data/not_exist.txt',
+    }
+
+    # ファイル削除
+    os.remove(path)
+
+
+@pytest.fixture
 def create_dummy_json():
     path = 'dg_mm/data/dummy.json'
     relative_path = 'data/dummy.json'
@@ -35,6 +53,5 @@ def create_dummy_ini():
 
     yield relative_path
 
-    # 後処理
     # ファイル削除
     os.remove(path)

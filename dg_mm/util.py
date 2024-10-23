@@ -3,22 +3,36 @@ import json
 import pathlib
 
 
-class ReadPackageFile():
+class PackageFileReader():
     """パッケージ内のファイルの読み込み処理をまとめたクラスです。"""
 
     @classmethod
-    def read_json(cls, relative_path: str) -> dict:
+    def is_file(cls, relative_path: str) -> bool:
+        """ファイルの存在チェックを行うメソッドです。
+
+        Args:
+            relative_path (str): ファイルパス(dg_mmフォルダからの相対パス)
+
+        Returns:
+            bool: ファイルが存在する場合はTrue
+        """
+        file_path = cls._get_absolute_path(relative_path)
+        return file_path.is_file()
+
+    @classmethod
+    def read_json(cls, relative_path: str, encoding: str = None) -> dict:
         """JSONファイルを読み込むメソッドです。
 
         Args:
             relative_path (str): ファイルパス(dg_mmフォルダからの相対パス)
+            encoding (str): 文字エンコード
 
         Returns:
             dict: jsonから変換したPythonオブジェクト
         """
 
         file_path = cls._get_absolute_path(relative_path)
-        with open(file_path) as f:
+        with open(file_path, mode='r', encoding=encoding) as f:
             return json.load(f)
 
     @classmethod
@@ -38,14 +52,14 @@ class ReadPackageFile():
         return ini_file
 
     @classmethod
-    def _get_absolute_path(cls, relative_path: str) -> str:
+    def _get_absolute_path(cls, relative_path: str) -> pathlib.Path:
         """ファイルの絶対パスを取得するメソッドです。
 
         Args:
             relative_path (str): ファイルパス(dg_mmフォルダからの相対パス)
 
         Returns:
-            str: 絶対パス
+            pathlib.Path: 絶対パス
         """
 
         package_path = pathlib.Path(__file__).resolve().parent
