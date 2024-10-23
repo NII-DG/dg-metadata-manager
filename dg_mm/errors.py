@@ -59,5 +59,5 @@ class InvalidStorageError(MetadatamanagerError):
     pass
 
 class MetadataNotFoundError(MetadatamanagerError):
-    """指定されたタイトルのプロジェクトメタデータが見つからなかった場合のエラー"""
+    """メタデータが見つからなかった場合のエラー"""
     pass

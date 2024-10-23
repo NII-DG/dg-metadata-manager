@@ -28,7 +28,7 @@ def main():
     parser_get.add_argument(
         '--file', help='ファイル出力先。通常は標準出力に出力されるメタデータをファイルに出力したい場合に使用する。既にファイルが存在する場合、上書きせずにエラーになる。')
     parser_get.add_argument(
-        '--project-metadata-title', dest='project_metadata_title', help='GRDMのプロジェクトメタデータを指定する。指定しない場合は作成日が一番新しいプロジェクトメタデータを取得する。')
+        '--project-metadata-id', dest='project_metadata_id', help='GRDMのプロジェクトメタデータを指定する。指定しない場合は作成日が一番新しいプロジェクトメタデータを取得する。')
     parser_get.set_defaults(func=get_metadata)
 
     try:
@@ -67,8 +67,8 @@ def get_metadata(args: argparse.Namespace):
         'storage': args.storage,
         'token': args.token,
         'id': args.id,
-        'filter_property': args.filter,
-        'project_metadata_title': args.project_metadata_title
+        'filter_properties': args.filter,
+        'project_metadata_id': args.project_metadata_id
     }
     mm = MetadataManager()
     result = mm.get_metadata(**params)
