@@ -10,6 +10,7 @@ from dg_mm.errors import (
     AccessDeniedError,
     APIError,
     InvalidProjectError,
+    MetadataNotFoundError,
     UnauthorizedError
 )
 
@@ -218,7 +219,6 @@ class TestGrdmAccess():
         # 結果の確認
         assert actual == api_res
         assert len(actual["data"]) == 1
-        assert mock_obj.call_count == 1
 
     def test_get_project_metadata_success_2(self, mocker, authorized_grdm_access):
         # モック化
@@ -229,31 +229,13 @@ class TestGrdmAccess():
         actual = authorized_grdm_access.get_project_metadata()
 
         # 結果の確認
-        assert actual == api_res
-        assert len(actual["data"]) == 2
-        assert mock_obj.call_count == 1
+        assert len(actual["data"]) == 1
+        assert actual["data"][0] == api_res["data"][0]
 
     def test_get_project_metadata_success_3(self, mocker, authorized_grdm_access):
         # モック化
-        res_body1 = read_json('tests/models/data/grdm_api_registrations_3.json')    # プロジェクトメタデータが11件登録されている場合の1回目のレスポンス
-        res_body2 = read_json('tests/models/data/grdm_api_registrations_4.json')    # プロジェクトメタデータが11件登録されている場合の2回目のレスポンス
-        res1 = create_mock_response(200, res_body1)
-        res2 = create_mock_response(200, res_body2)
-        mock_obj = mocker.patch('requests.get', side_effect=[res1, res2])
-
-        # テスト実行
-        actual = authorized_grdm_access.get_project_metadata()
-
-        # 結果の確認
-        expected = read_json('tests/models/data/grdm_api_registrations_5.json') # dataが11件のデータ
-        assert actual == expected
-        assert len(actual["data"]) == 11
-        assert mock_obj.call_count == 2
-
-    def test_get_project_metadata_success_4(self, mocker, authorized_grdm_access):
-        # モック化
-        api_res = read_json('tests/models/data/grdm_api_registrations_6.json')  # プロジェクトメタデータが登録されていない場合のレスポンス
-        mock_obj = mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+        api_res = read_json('tests/models/data/grdm_api_registrations_3.json')  # プロジェクトメタデータが登録されていない場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
 
         # テスト実行
         actual = authorized_grdm_access.get_project_metadata()
@@ -261,16 +243,45 @@ class TestGrdmAccess():
         # 結果の確認
         assert actual == api_res
         assert len(actual["data"]) == 0
-        assert mock_obj.call_count == 1
 
-    def test_get_project_metadata_failure_1(self):
+    def test_get_project_metadata_success_4(self, mocker, authorized_grdm_access):
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_1.json')  # 指定したIDのプロジェクトメタデータが存在する場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        actual = authorized_grdm_access.get_project_metadata(project_metadata_id="valid")
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]) == 1
+
+    def test_get_project_metadata_failure_1(self, mocker, authorized_grdm_access):
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_3.json')  # 指定したIDのプロジェクトメタデータが存在しない場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        with pytest.raises(MetadataNotFoundError, match="指定したIDのプロジェクトメタデータが存在しません"):
+            authorized_grdm_access.get_project_metadata(project_metadata_id="invalid")
+
+    def test_get_project_metadata_failure_2(self, mocker, authorized_grdm_access):
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_4.json')  # 別のプロジェクトのメタデータIDを指定した場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        with pytest.raises(MetadataNotFoundError, match="指定したIDのプロジェクトメタデータが存在しません"):
+            authorized_grdm_access.get_project_metadata(project_metadata_id="invalid")
+
+    def test_get_project_metadata_failure_3(self):
         # テスト実行
         target_class = GrdmAccess()
 
         with pytest.raises(UnauthorizedError, match="認証されていません"):
             target_class.get_project_metadata()
 
-    def test_get_project_metadata_failure_2(self, mocker, authorized_grdm_access):
+    def test_get_project_metadata_failure_4(self, mocker, authorized_grdm_access):
         # モック化
         mocker.patch('requests.get', return_value=create_mock_response(500))
 
@@ -278,7 +289,7 @@ class TestGrdmAccess():
         with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
             authorized_grdm_access.get_project_metadata()
 
-    def test_get_project_metadata_failure_3(self, mocker, authorized_grdm_access):
+    def test_get_project_metadata_failure_5(self, mocker, authorized_grdm_access):
         # モック化
         mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
 
@@ -419,7 +430,7 @@ class TestGrdmAccess():
         api_res2 = read_json('tests/models/data/grdm_api_contributors_4.json')  # メンバー情報が11件登録されている場合の2回目のレスポンス
         res1 = create_mock_response(200, api_res1)
         res2 = create_mock_response(200, api_res2)
-        mock_obj = mocker.patch('requests.get', side_effext=[res1, res2])
+        mock_obj = mocker.patch('requests.get', side_effect=[res1, res2])
 
         # テスト実行
         actual = authorized_grdm_access.get_member_info()
@@ -427,3 +438,26 @@ class TestGrdmAccess():
         # 結果の確認
         assert len(actual["data"]) == 11
         assert mock_obj.call_count == 2
+
+    def test_get_member_info_failure_1(self):
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_member_info()
+
+    def test_get_member_info_failure_2(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            authorized_grdm_access.get_member_info()
+
+    def test_get_member_info_failure_3(self, mocker, authorized_grdm_access):
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            authorized_grdm_access.get_member_info()

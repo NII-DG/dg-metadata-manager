@@ -1,17 +1,24 @@
 {
     "data": [
         {
-            "id": "aaaaa",
-            "type": "registrations"
+            "id": "invalid",
+            "type": "registrations",
+            "relationships": {
+                "registered_from": {
+                    "data": {
+                        "id": "invalid_project_id"
+                    }
+                }
+            }
         }
     ],
     "links": {
-        "first": "first page url",
+        "first": null,
         "last": null,
-        "prev": "prev page url",
+        "prev": null,
         "next": null,
         "meta": {
-            "total": 11,
+            "total": 1,
             "per_page": 10
         }
     },

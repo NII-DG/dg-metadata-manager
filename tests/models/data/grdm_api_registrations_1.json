@@ -1,8 +1,15 @@
 {
     "data": [
         {
-            "id": "aaaaa",
-            "type": "registrations"
+            "id": "valid",
+            "type": "registrations",
+            "relationships": {
+                "registered_from": {
+                    "data": {
+                        "id": "valid_project_id"
+                    }
+                }
+            }
         }
     ],
     "links": {
