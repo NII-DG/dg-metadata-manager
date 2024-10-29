@@ -1,3 +1,4 @@
+"""grdm.pyをテストするためのモジュールです。"""
 import json
 from multiprocessing import AuthenticationError
 from typing import Counter
@@ -1297,7 +1298,7 @@ class TestGrdmMapping():
         assert str(e.value) == f"データ構造が定義と異なっています。({schema_property})"
 
     def test__handle_list_1(self):
-        """（異常系テスト）リスト内のオブジェクトに期待されるキーが存在しない場合のテストケースです。"""
+        """（異常系テスト）リスト内のオブジェクトに期待されるキーが存在しないものが含まれる場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
@@ -1338,7 +1339,7 @@ class TestGrdmMapping():
                                     f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})"]
 
     def test__handle_list_2(self):
-        """（異常系テスト）複数のリスト内にキーが存在しないオブジェクトが存在する場合のテストケースです。"""
+        """（異常系テスト）異なる複数のリスト内にキーが存在しないオブジェクトが存在する場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3", "st4"]
@@ -1440,7 +1441,7 @@ class TestGrdmMapping():
         assert new_schema == excepted_schema
 
     def test__get_and_insert_final_key_value_2(self):
-        """（正常系テスト）末端のキーがリストでその値と対応するリストが存在する場合のテストケースです。"""
+        """（正常系テスト）末端のキーがリストであり、その値と対応するリストが存在する場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
         schema_property = "sc1[].sc2"
@@ -1476,7 +1477,7 @@ class TestGrdmMapping():
         assert new_schema == expected_schema
 
     def test__get_and_insert_final_key_value_3(self):
-        """（正常系テスト）末端のキーがリストでその値と対応するリストが存在しない場合のテストケースです。"""
+        """（正常系テスト）末端のキーがリストであり、その値と対応するリストが存在しない場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
         schema_property = "sc1.sc2"
@@ -1507,7 +1508,7 @@ class TestGrdmMapping():
         assert new_schema == expected_schema
 
     def test__get_and_insert_final_key_value_4(self):
-        """（異常系テスト）末端のキーのリストを定義している'list'に記載されたインデックスと対応するデータが存在しない場合のテストケースです。"""
+        """（異常系テスト）'list'に記載された末端のキーのリストのインデックスと対応するデータが存在しない場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
         schema_property = "sc1.sc2"
@@ -1604,7 +1605,7 @@ class TestGrdmMapping():
         assert new_schema == expected_schema
 
     def test__add_property_3(self):
-        """ストレージにデータが存在しない場合のテストケースです。（正常系テスト 22)"""
+        """ストレージにデータが存在しない場合（リスト）のテストケースです。（正常系テスト 22)"""
         new_schema = {}
         schema_property = "sc1.sc2"
         type = "string"
@@ -1781,20 +1782,3 @@ class TestGrdmMapping():
         with pytest.raises(MappingDefinitionError):
             target_class = GrdmMapping()
             target_class._convert_data_type(data, type)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
