@@ -20,16 +20,11 @@ def read_json(path):
 class TestMetadataManager:
     def test_get_metadata_success_1(self, mocker):
         # モック化
-        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid', return_value=True)
-        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid', return_value=True)
-        mocker.patch('dg_mm.models.grdm.GrdmAccess.get_project_metadata', return_value=read_json("tests/models/data/grdm_api_registrations_1.json"))
-        mocker.patch('dg_mm.models.grdm.GrdmAccess.get_file_metadata', return_value=read_json("tests/models/data/grdm_api_file_metadata_1.json"))
-        mocker.patch('dg_mm.models.grdm.GrdmAccess.get_project_info', return_value=read_json("tests/models/data/grdm_api_node_1.json"))
-        mocker.patch('dg_mm.models.grdm.GrdmAccess.get_member_info', return_value=read_json("tests/models/data/grdm_api_contributors_1.json"))
+        mock_obj = mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", return_value={"key: value"})
 
         # テスト実行
         param = {
-            "schema": "test",
+            "schema": "RF",
             "storage": "GRDM",
             "token": "valid",
             "id": "valid"
@@ -38,39 +33,34 @@ class TestMetadataManager:
         result = target_class.get_metadata(**param)
 
         # 結果の確認
-        assert result
+        assert result == {"key: value"}
+        mock_obj.assert_called_with(schema="RF", token="valid", project_id="valid",
+                                    filter_properties=None, project_metadata_id=None)
 
     def test_get_metadata_success_2(self, mocker):
+        # モック化
+        mock_obj = mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", return_value={"key: value"})
+
         # テスト実行
         param = {
             "schema": "RF",
             "storage": "GRDM",
             "token": "valid",
             "id": "valid",
-            "filter_properties": []
+            "filter_properties": ["valid_property"]
         }
         target_class = MetadataManager()
         result = target_class.get_metadata(**param)
 
         # 結果の確認
-        assert result
+        assert result == {"key: value"}
+        mock_obj.assert_called_with(schema="RF", token="valid", project_id="valid",
+                                    filter_properties=["valid_property"], project_metadata_id=None)
 
-    def test_get_metadata_success_2(self):
-        # テスト実行
-        param = {
-            "schema": "RF",
-            "storage": "GRDM",
-            "token": "valid",
-            "id": "valid",
-            "filter_properties": []
-        }
-        target_class = MetadataManager()
-        result = target_class.get_metadata(**param)
+    def test_get_metadata_failure_1(self, mocker):
+        # モック化
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundMappingDefinitionError)
 
-        # 結果の確認
-        assert result
-
-    def test_get_metadata_failure_1(self):
         # テスト実行
         param = {
             "schema": "invalid",
@@ -79,7 +69,7 @@ class TestMetadataManager:
             "id": "valid"
         }
         target_class = MetadataManager()
-        with pytest.raises(NotFoundMappingDefinitionError, match="マッピング定義ファイルが見つかりません。"):
+        with pytest.raises(NotFoundMappingDefinitionError):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_2(self):
@@ -94,7 +84,10 @@ class TestMetadataManager:
         with pytest.raises(InvalidStorageError, match="対応していないストレージが指定されました"):
             target_class.get_metadata(**param)
 
-    def test_get_metadata_failure_3(self):
+    def test_get_metadata_failure_3(self, mocker):
+        # モック化
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=InvalidTokenError)
+
         # テスト実行
         param = {
             "schema": "RF",
@@ -102,10 +95,13 @@ class TestMetadataManager:
             "id": "valid"
         }
         target_class = MetadataManager()
-        with pytest.raises(InvalidTokenError, match="認証に失敗しました"):  # 本当はmapping_metadataではじいてほしい
+        with pytest.raises(InvalidTokenError):
             target_class.get_metadata(**param)
 
-    def test_get_metadata_failure_4(self):
+    def test_get_metadata_failure_4(self, mocker):
+        # モック化
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=InvalidProjectError)
+
         # テスト実行
         param = {
             "schema": "RF",
@@ -113,7 +109,7 @@ class TestMetadataManager:
             "token": "valid",
         }
         target_class = MetadataManager()
-        with pytest.raises(InvalidProjectError, match="プロジェクトが存在しません"):    # 本当はmapping_metadataではじいてほしい
+        with pytest.raises(InvalidProjectError):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_5(self):
@@ -126,10 +122,14 @@ class TestMetadataManager:
             "filter_properties": []
         }
         target_class = MetadataManager()
-        with pytest.raises(Exception, match=""):     # 不明。実装が違う
+        # エラーが出る実装になっていない
+        with pytest.raises():
             target_class.get_metadata(**param)
 
-    def test_get_metadata_failure_6(self):
+    def test_get_metadata_failure_6(self, mocker):
+        # モック化
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundKeyError)
+
         # テスト実行
         param = {
             "schema": "RF",
@@ -139,5 +139,5 @@ class TestMetadataManager:
             "filter_properties": ["invalid_property"]
         }
         target_class = MetadataManager()
-        with pytest.raises(NotFoundKeyError, match=f"指定したプロパティ: invalid_property が存在しません"):
+        with pytest.raises(NotFoundKeyError):
             target_class.get_metadata(**param)

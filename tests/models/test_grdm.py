@@ -35,23 +35,11 @@ def authorized_grdm_access():
     instance._is_authenticated = True
     return instance
 
-
-@pytest.fixture
-def mock_check_token_valid(mocker):
-    return mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid')
-
-
-@pytest.fixture
-def mock_check_project_id_valid(mocker):
-    return mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid')
-
 class TestGrdmAccess():
-    def test_check_authentication_success_1(self, mocker, mock_check_token_valid, mock_check_project_id_valid):
+    def test_check_authentication_success_1(self, mocker):
         # モック化
-        # mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid', return_value=True)
-        # mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid', return_value=True)
-        mock_check_token_valid.return_value = True
-        mock_check_project_id_valid.return_value = True
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid', return_value=True)
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid', return_value=True)
 
         # テスト実行
         target_class = GrdmAccess()

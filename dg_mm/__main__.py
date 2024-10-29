@@ -60,6 +60,8 @@ def get_metadata(args: argparse.Namespace):
         args (argparse.Namespace): コマンドライン引数
     """
     if args.filter_file is not None:
+        if not os.path.exists(args.filter_file):
+            raise FileNotFoundError(f"ファイルが見つかりません: '{args.filter_file}'")
         with open(args.filter_file, 'r') as f:
             args.filter = json.load(f)
     params = {
