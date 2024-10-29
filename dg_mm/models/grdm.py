@@ -521,6 +521,7 @@ class GrdmAccess():
         self._domain = self._config_file["settings"]["domain"]
         self._timeout = self._config_file["settings"].getfloat("timeout")
         self._max_requests = self._config_file["settings"].getint("max_requests")
+        self._is_authenticated = None
 
     def check_authentication(self, token: str, project_id: str) -> bool:
         """アクセス権の認証を行うメソッドです。
