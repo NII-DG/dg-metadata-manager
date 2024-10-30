@@ -1,0 +1,167 @@
+{
+    "test_mapping_metadata_1": {
+        "sc1[].sc2[]": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3",
+            "list": {
+                "st1": "sc1"
+            }
+        },
+        "sc1[].sc3[].sc4[]": {
+            "type": "string",
+            "value": null
+        },
+        "sc1[].sc3[].sc5": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3.st4",
+            "list": {
+                "st1": "sc1",
+                "st3": "sc3"
+            }
+        }
+    },
+    "test_mapping_metadata_2": {
+        "sc1[].sc2[]": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3",
+            "list": {
+                "st1": "sc1"
+            }
+        },
+        "sc1[].sc3[].sc5": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3.st4",
+            "list": {
+                "st1": "sc1",
+                "st3": "sc3"
+            }
+        }
+    },
+    "test_mapping_metadata_3": {
+        "sc1[].sc2": {
+            "type": "string",
+            "value": null
+        },
+        "sc1[].sc3[].sc4[]": {
+            "type": "string",
+            "value": null
+        }
+    },
+    "test_mapping_metadata_11": {
+        "sc1[].sc2[]": {
+            "type": "boolean",
+            "source": "member_info",
+            "value": "st1.st2.st3",
+            "list": {
+                "st1": "sc1"
+            }
+        },
+        "sc1[].sc3.sc4": {
+            "type": "number",
+            "source": "member_info",
+            "value": "st1.st4",
+            "list": {
+                "st1": "sc1"
+            }
+        }
+    },
+    "test__find_metadata_sources_1": {
+        "sc1[].sc2[]": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3",
+            "list": {
+                "st1": "sc1"
+            }
+        },
+        "sc1[].sc3[].sc4[]": {
+            "type": "string",
+            "source": "project_info",
+            "value": "st1.st6"
+        },
+        "sc1[].sc3[].sc5": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3.st4",
+            "list": {
+                "st1": "sc1",
+                "st3": "sc3"
+            }
+        }
+    },
+    "test__find_metadata_sources_2": {
+        "researcher[].email[]": {
+            "type": "string",
+            "value": null
+        },
+        "researcher[].affiliation[].adress[]": {
+            "type": "string",
+            "value": null
+        },
+        "researcher[].affiliation[].name": {
+            "type": "string",
+            "value": null
+        }
+    },
+    "base_mapping_definition": {
+        "researcher[].email[]": {
+            "type": "string",
+            "source": "member_info",
+            "value": "data.embeds.users.data.attributes.email",
+            "list": {
+                "data": "researcher"
+            }
+        },
+        "researcher[].affiliation[].adress[]": {
+            "type": "string",
+            "value": null
+        },
+        "researcher[].affiliation[].name": {
+            "type": "string",
+            "source": "member_info",
+            "value": "data.embeds.users.data.attributes.employment.institution_ja",
+            "list": {
+                "data": "researcher",
+                "employment": "affiliation"
+            }
+        }
+    },
+    "test_get_and_filter_mapping_definition_2": {
+        "researcher[].email[]": {
+            "type": "string",
+            "source": "member_info",
+            "value": "data.embeds.users.data.attributes.email",
+            "list": {
+                "data": "researcher"
+            }
+        },
+        "researcher[].affiliation[].name": {
+            "type": "string",
+            "source": "member_info",
+            "value": "data.embeds.users.data.attributes.employment.institution_ja",
+            "list": {
+                "data": "researcher",
+                "employment": "affiliation"
+            }
+        }
+    },
+    "test_get_and_filter_mapping_definition_3": {
+        "researcher[].affiliation[].adress[]": {
+            "type": "string",
+            "value": null
+        },
+        "researcher[].affiliation[].name": {
+            "type": "string",
+            "source": "member_info",
+            "value": "data.embeds.users.data.attributes.employment.institution_ja",
+            "list": {
+                "data": "researcher",
+                "employment": "affiliation"
+            }
+        }
+    }
+}

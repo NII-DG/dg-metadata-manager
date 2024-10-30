@@ -34,6 +34,9 @@ class DefinitionManager():
 
         """
         try:
+            if isinstance(filter_properties, list) and not filter_properties:
+                raise NotFoundKeyError("絞り込むプロパティが指定されていません。")
+
             mapping_definition = self._read_mapping_definition(schema, storage)
             # 要素が存在する場合のみ絞り込みを行います。
             if filter_properties:
@@ -45,7 +48,7 @@ class DefinitionManager():
 
                 for key in filter_properties:
                     matched_keys = [sanitized_mapping_keys[sanitized_key]
-                                    for sanitized_key in sanitized_mapping_keys if sanitized_key.startswith(key + '.')]
+                                    for sanitized_key in sanitized_mapping_keys if sanitized_key.startswith(key)]
 
                     if matched_keys:
                         for matched_key in matched_keys:

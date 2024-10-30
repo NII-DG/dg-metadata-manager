@@ -1,0 +1,100 @@
+{
+    "test_mapping_metadata_1": {
+        "sc1": [
+            {
+                "sc2": [
+                    "value1"
+                ],
+                "sc3": [
+                    {
+                        "sc4": [],
+                        "sc5": "value2"
+                    }
+                ]
+            }
+        ]
+    },
+    "test_mapping_metadata_2": {
+        "sc1": [
+            {
+                "sc2": [
+                    "value1"
+                ],
+                "sc3": [
+                    {
+                        "sc5": "value2"
+                    }
+                ]
+            }
+        ]
+    },
+    "test_mapping_metadata_3": {
+        "sc1": [
+            {
+                "sc2": null,
+                "sc3": [
+                    {
+                        "sc4": []
+                    }
+                ]
+            }
+        ]
+    },
+    "test__extract_and_insert_metadata_9": {
+        "sc1": [
+            {
+                "sc2": "value1"
+            },
+            {
+                "sc2": "value2"
+            }
+        ]
+    },
+    "test__extract_and_insert_metadata_12": {
+        "sc1": [
+            {
+                "sc2": {
+                    "sc3": [
+                        {
+                            "sc4": "value1"
+                        }
+                    ]
+                }
+            },
+            {
+                "sc2": {
+                    "sc3": [
+                        {
+                            "sc4": "value3"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "test__extract_and_insert_metadata_20": {
+        "sc1": [
+            {
+                "sc2": {
+                    "sc3": [
+                        {
+                            "sc4": "value1"
+                        },
+                        {
+                            "sc4": "value3"
+                        }
+                    ]
+                }
+            },
+            {
+                "sc2": {
+                    "sc3": [
+                        {
+                            "sc4": "value5"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

@@ -56,12 +56,9 @@ class GrdmMapping():
         grdm_access = GrdmAccess()
         grdm_access.check_authentication(token, project_id)
 
-        if filter_properties is None:
-            filter_properties = []
-
-            # マッピング定義の取得
-            storage = "GRDM"
-            self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(schema, storage, filter_properties)
+        # マッピング定義の取得
+        storage = "GRDM"
+        self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(schema, storage, filter_properties)
 
         try:
             # メタデータ取得先の特定
@@ -94,7 +91,6 @@ class GrdmMapping():
                 schema_link_list = {}
                 source = components.get("source")
                 storage_path = components.get("value")
-                storage_keys = storage_path.split(".")
                 # 対応するデータがGRDMに存在しない場合
                 if storage_path is None:
                     type = components.get("type")
@@ -103,6 +99,7 @@ class GrdmMapping():
                         new_schema, schema_property, type, storage_data, schema_link_list)
                     continue
 
+                storage_keys = storage_path.split(".")
                 try:
                     new_schema = self._extract_and_insert_metadata(
                         new_schema, source_data[source], schema_property, components, schema_link_list, storage_keys)
@@ -144,7 +141,7 @@ class GrdmMapping():
         for components in self._mapping_definition.values():
             source = components.get("source")
             if source is not None:
-                metadata_sources.add(components[source])
+                metadata_sources.add(source)
 
         return list(metadata_sources)
 
@@ -170,11 +167,11 @@ class GrdmMapping():
         # キーを一つずつ取り出して処理を行う
         for index, key in enumerate(storage_keys[:-1]):
             source = self._check_and_handle_key_structure(
-                new_schema, source, schema_property, components, schema_link_list, index, key)
+                new_schema, source, schema_property, components, schema_link_list, storage_keys, index, key)
 
             # ストレージのデータにあるリストと対応するリストがスキーマに存在する場合、このメソッドを再帰的に呼び出してデータの取り出しと挿入を行った後、Noneを返します。
             # そのため、sourceがNoneの場合は以降のデータ取り出し、挿入処理をスキップします。
-            if source:
+            if source is None:
                 return new_schema
 
         # 最終キーに対する処理。キーの値を取り出し、スキーマに挿入したものを返します。
@@ -186,7 +183,7 @@ class GrdmMapping():
 
     def _check_and_handle_key_structure(
             self, new_schema: dict, source: dict, schema_property: str, components: dict,
-            schema_link_list: dict, index: int, key: str) -> Optional[dict]:
+            schema_link_list: dict, storage_keys: list, index: int, key: str) -> Optional[dict]:
         """キーの値がlistかdictかを判定し、対応した処理を実行するメソッドです。
 
         listだった場合は_handle_listを呼び出しリストの定義に応じた処理を実行し、dictだった場合はsourceをそのキーの値に更新します。
@@ -197,6 +194,7 @@ class GrdmMapping():
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
             components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
             schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
+            storage_keys (list): ストレージから取得するデータまでのキーのリスト
             index (int): 処理中のキーのインデックス
             key (str): 処理中のキー
 
@@ -215,24 +213,26 @@ class GrdmMapping():
         # 値がリスト構造の場合
         if isinstance(source[key], list):
             source = self._handle_list(
-                new_schema, source, schema_property, components, schema_link_list, index, key)
+                new_schema, source, schema_property, components, schema_link_list, storage_keys, index, key)
 
         # 値がdict構造の場合
         elif isinstance(source[key], dict):
-            if key not in components.get("list"):
-                source = source[key]
-            else:
+            list_info = components.get("list")
+            if list_info and key in list_info:
                 raise MappingDefinitionError(
                     f"オブジェクト：{key}がリストとして定義されています。({schema_property})")
+            else:
+                source = source[key]
+
         else:
             raise MappingDefinitionError(
-                f"データ構造が定義と異なっています({schema_property})")
+                f"データ構造が定義と異なっています。({schema_property})")
 
         return source
 
     def _handle_list(
             self, new_schema: dict, source: dict, schema_property: str, components: dict,
-            schema_link_list: dict, index: int, key: str) -> Optional[dict]:
+            schema_link_list: dict, storage_keys: list, index: int, key: str) -> Optional[dict]:
         """リスト構造だった場合の処理を実行するメソッドです。
 
         スキーマに対応するリストが存在する場合は_extract_and_insert_metadataを再帰的に呼び出し、データの取り出しとスキーマへの挿入を行います。
@@ -244,6 +244,7 @@ class GrdmMapping():
             schema_property (str): スキーマのプロパティまでのキーをつなげた文字列
             components (dict): マッピング定義情報。取得するデータの場所や構造、スキーマの求めるデータ型の情報が記載されています。
             schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持しています。
+            storage_keys (list): ストレージから取得するデータまでのキーのリスト
             index (int): 処理中のキーのインデックス
             key (str): 処理中のキー
 
@@ -255,16 +256,21 @@ class GrdmMapping():
             NotFoundKeyError: データの構造を示すキーが存在しない
 
         """
-        link_list_info = components.get("list").get(key)
+        link_list_info = components.get("list")
+        complete_storage_keys = components.get("value").split(".")
+        current_key_index = index + len(complete_storage_keys) - len(storage_keys)
+        link_list_info = link_list_info.get(".".join(complete_storage_keys[:current_key_index + 1])) if link_list_info else None
+
         if link_list_info is None:
-            raise MappingDefinitionError(f"リスト：{key}が定義されていません")
+            raise MappingDefinitionError(f"リスト：{key}の定義が不足しています。({schema_property})")
 
         # 対応するリストが存在する場合
-        if not link_list_info.isdigit():
+        if isinstance(link_list_info, str):
             error_keys = []
+            storage_keys = storage_keys[index+1:]
             for i, item in enumerate(source[key]):
                 schema_link_list[link_list_info] = i + 1
-                storage_keys = components.get("value").split(".")
+
                 try:
                     new_schema = self._extract_and_insert_metadata(
                         new_schema, item, schema_property, components, schema_link_list, storage_keys)
@@ -280,7 +286,7 @@ class GrdmMapping():
         # 対応するリストが存在しない場合
         else:
             if 0 <= link_list_info < len(source[key]):
-                source = source[key][index]
+                source = source[key][link_list_info]
                 return source
             else:
                 raise MappingDefinitionError(
@@ -316,21 +322,23 @@ class GrdmMapping():
 
         # 値がリスト構造の場合
         if isinstance(source[final_key], list):
-            link_list_info = components.get("list").get(final_key)
+            link_list_info = components.get("list")
+            complete_storage_keys = components.get("value").split(".")
+            link_list_info = link_list_info.get(".".join(complete_storage_keys)) if link_list_info else None
             if link_list_info:
                 # 対応するリストが存在する場合
-                if not link_list_info.isdigit():
+                if isinstance(link_list_info, str):
                     for i, item in enumerate(source[final_key]):
                         schema_link_list[link_list_info] = i + 1
                         storage_data = []
-                        storage_data.extend(item)
-                    new_schema = self._add_property(
-                        new_schema, schema_property, type, storage_data, schema_link_list)
+                        storage_data.append(item)
+                        new_schema = self._add_property(
+                            new_schema, schema_property, type, storage_data, schema_link_list)
                     return new_schema
                 # 対応するリストが存在しない場合
                 else:
                     if len(source[final_key]) > 0 and 0 <= link_list_info < len(source[final_key]):
-                        storage_data.extend(source[final_key][link_list_info])
+                        storage_data.append(source[final_key][link_list_info])
                         new_schema = self._add_property(
                             new_schema, schema_property, type, storage_data, schema_link_list)
                     else:
@@ -383,44 +391,47 @@ class GrdmMapping():
 
         """
         keys = schema_property.split('.')
+        current_schema = new_schema
 
-        for key in keys[:-1]:
+        for index, key in enumerate(keys[:-1]):
             # リストの場合
             if "[]" in key:
                 base_key = key.replace("[]", "")
                 # キーが存在しない場合、新しく作成する。
-                if base_key not in new_schema:
-                    new_schema[base_key] = [{}]
-                    new_schema = new_schema[base_key]
+                if base_key not in current_schema:
+                    current_schema[base_key] = [{}]
+                    current_schema = current_schema[base_key][0]
                     continue
                 # リスト構造以外が存在する場合
-                elif not isinstance(new_schema[base_key], list):
+                elif not isinstance(current_schema[base_key], list):
                     raise MappingDefinitionError(
                         f"マッピング定義に誤りがあります({schema_property})")
 
-                index = schema_link_list.get(base_key)
+                base_keys = [key.replace("[]", "") for key in keys[:index + 1]]
+                link_list_info = schema_link_list.get(".".join(base_keys))
+
                 # リストが対応している場合
-                if index is not None:
-                    counts = index - len(new_schema[base_key])
-                    if counts >= 1:
-                        for _ in counts:
-                            new_schema[base_key].append({})
-                    new_schema = new_schema[base_key][index-1]
+                if link_list_info is not None:
+                    counts = link_list_info - len(current_schema[base_key])
+                    if counts > 0:
+                        for _ in range(counts):
+                            current_schema[base_key].append({})
+                    current_schema = current_schema[base_key][link_list_info - 1]
                 # リストが対応していない場合
                 else:
-                    if len(new_schema[base_key]) <= 1:
-                        new_schema = new_schema[base_key]
+                    if len(current_schema[base_key]) <= 1:
+                        current_schema = current_schema[base_key][0]
                     else:
                         raise MappingDefinitionError(
                             f"マッピング定義に誤りがあります({schema_property})")
             # dictの場合
             else:
-                if key not in new_schema:
-                    new_schema[key] = {}
-                elif not isinstance(new_schema[key], dict):
+                if key not in current_schema:
+                    current_schema[key] = {}
+                elif not isinstance(current_schema[key], dict):
                     raise MappingDefinitionError(
                         f"マッピング定義に誤りがあります({schema_property})")
-                new_schema = new_schema[key]
+                current_schema = current_schema[key]
 
         # 最終キーの処理
         final_key = keys[-1]
@@ -437,17 +448,17 @@ class GrdmMapping():
 
             except Exception as e:
                 raise MetadataTypeError(
-                    f"型変換エラー：{storage_data}を{type}に変換できません({schema_property}):{e}") from e
+                    f"型変換エラー：{storage_data}を{type}に変換できません({schema_property})") from e
 
         # スキーマの定義がリストの場合
         if "[]" in final_key:
             base_key = final_key.replace("[]", "")
-            new_schema.setdefault(base_key, [])
+            current_schema.setdefault(base_key, [])
             if converted_storage_data:
-                new_schema[base_key].extend(converted_storage_data)
+                current_schema[base_key].extend(converted_storage_data)
         # スキーマの定義がリストではない場合
         else:
-            new_schema[final_key] = converted_storage_data[0] if converted_storage_data else None
+            current_schema[final_key] = converted_storage_data[0] if converted_storage_data else None
 
         return new_schema
 
