@@ -1,12 +1,15 @@
 """エラーのモジュールです。"""
 
+
 class MetadatamanagerError(Exception):
     """MetadataManagerのエラー"""
     pass
 
+
 class NotFoundMappingDefinitionError(MetadatamanagerError):
     """マッピング定義ファイルが見つからないエラーのクラスです。"""
     pass
+
 
 class MetadataTypeError(MetadatamanagerError):
     """データの型が間違っているエラーのクラスです。"""
@@ -26,6 +29,7 @@ class MappingDefinitionError(MetadatamanagerError):
 class DataFormatError(MetadatamanagerError):
     """データの形式に問題がある場合のエラーです。"""
     pass
+
 
 class APIError(MetadatamanagerError):
     """APIのエラー"""
@@ -55,6 +59,7 @@ class InvalidIdError(MetadatamanagerError):
 class InvalidStorageError(MetadatamanagerError):
     """対応していないストレージを指定した場合のエラー"""
     pass
+
 
 class MetadataNotFoundError(MetadatamanagerError):
     """メタデータが見つからなかった場合のエラー"""
