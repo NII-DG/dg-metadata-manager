@@ -10,7 +10,7 @@ from dg_mm.errors import (
     AccessDeniedError,
     APIError,
     InvalidTokenError,
-    InvalidProjectError,
+    InvalidIdError,
     DataFormatError,
     MappingDefinitionError,
     MetadataTypeError,
@@ -585,7 +585,7 @@ class GrdmAccess():
 
         Raises:
             AccessDeniedError:アクセス権不正
-            InvalidProjectError:プロジェクト不正
+            InvalidIdError:プロジェクト不正
             APIError:APIのサーバーエラー、タイムアウト
         """
         base_url = self._config_file["url"]["project_info"]
@@ -601,10 +601,10 @@ class GrdmAccess():
                 raise AccessDeniedError("プロジェクトへのアクセス権がありません")
             elif response.status_code == 404:
                 logger.error(f"Project not found: {e}")
-                raise InvalidProjectError("プロジェクトが存在しません")
+                raise InvalidIdError("プロジェクトが存在しません")
             elif response.status_code == 410:
                 logger.error(f"Project deleted: {e}")
-                raise InvalidProjectError("プロジェクトが削除されています")
+                raise InvalidIdError("プロジェクトが削除されています")
             elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")

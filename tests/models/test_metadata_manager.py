@@ -1,9 +1,7 @@
-import json
-
 import pytest
 
 from dg_mm.errors import (
-    InvalidProjectError,
+    InvalidIdError,
     InvalidStorageError,
     InvalidTokenError,
     NotFoundKeyError,
@@ -12,13 +10,10 @@ from dg_mm.errors import (
 from dg_mm.models.metadata_manager import MetadataManager
 
 
-def read_json(path):
-    with open(path, mode='r') as f:
-        return json.load(f)
-
-
 class TestMetadataManager:
     def test_get_metadata_success_1(self, mocker):
+        """スキーマ全体を取得"""
+
         # モック化
         mock_obj = mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", return_value={"key: value"})
 
@@ -38,6 +33,8 @@ class TestMetadataManager:
                                     filter_properties=None, project_metadata_id=None)
 
     def test_get_metadata_success_2(self, mocker):
+        """スキーマの一部を取得"""
+
         # モック化
         mock_obj = mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", return_value={"key: value"})
 
@@ -58,6 +55,8 @@ class TestMetadataManager:
                                     filter_properties=["valid_property"], project_metadata_id=None)
 
     def test_get_metadata_failure_1(self, mocker):
+        """対応していないスキーマを指定"""
+
         # モック化
         mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundMappingDefinitionError)
 
@@ -73,6 +72,8 @@ class TestMetadataManager:
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_2(self):
+        """対応していないストレージを指定"""
+
         # テスト実行
         param = {
             "schema": "RF",
@@ -85,6 +86,8 @@ class TestMetadataManager:
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_3(self, mocker):
+        """トークンを指定しない"""
+
         # モック化
         mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=InvalidTokenError)
 
@@ -99,8 +102,10 @@ class TestMetadataManager:
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_4(self, mocker):
+        """プロジェクトIDを指定しない"""
+
         # モック化
-        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=InvalidProjectError)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=InvalidIdError)
 
         # テスト実行
         param = {
@@ -109,10 +114,15 @@ class TestMetadataManager:
             "token": "valid",
         }
         target_class = MetadataManager()
-        with pytest.raises(InvalidProjectError):
+        with pytest.raises(InvalidIdError):
             target_class.get_metadata(**param)
 
-    def test_get_metadata_failure_5(self):
+    def test_get_metadata_failure_5(self, mocker):
+        """オプション(取得するプロパティ一覧)が空"""
+
+        # モック化
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundKeyError)
+
         # テスト実行
         param = {
             "schema": "RF",
@@ -122,11 +132,12 @@ class TestMetadataManager:
             "filter_properties": []
         }
         target_class = MetadataManager()
-        # エラーが出る実装になっていない
-        with pytest.raises():
+        with pytest.raises(NotFoundKeyError):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_6(self, mocker):
+        """スキーマに存在しないプロパティをオプションに指定"""
+
         # モック化
         mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundKeyError)
 

@@ -47,8 +47,8 @@ class InvalidTokenError(MetadatamanagerError):
     pass
 
 
-class InvalidProjectError(MetadatamanagerError):
-    """プロジェクト不正の場合のエラー"""
+class InvalidIdError(MetadatamanagerError):
+    """ID不正の場合のエラー"""
     pass
 
 
