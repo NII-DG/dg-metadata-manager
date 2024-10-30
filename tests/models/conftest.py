@@ -54,3 +54,36 @@ def create_invalid_test_definition():
     # 後処理
     # ファイル削除
     os.remove(path)
+
+@pytest.fixture
+def read_test_mapping_definition():
+    """テスト時に用いるマッピング定義を読み込み、呼び出されたテストに必要なデータのみを取り出します。"""
+
+    path = 'tests/models/data/mapping_definition.json'
+
+    with open(path, mode='r') as f:
+        data = json.load(f)
+
+    yield data
+
+@pytest.fixture
+def read_test_expected_schema():
+    """テスト実行時に出力が予測されるスキーマを読み込み、呼び出されたテストに必要なデータのみを取り出します。"""
+
+    path = 'tests/models/data/expected_schema.json'
+
+    with open(path, mode='r') as f:
+        data = json.load(f)
+
+    yield data
+
+@pytest.fixture
+def read_test_source_data():
+    """テスト時に用いるストレージのソースデータを読み込み、呼び出されたテストに必要なデータのみを取り出します。"""
+
+    path = 'tests/models/data/source_data.json'
+
+    with open(path, mode='r') as f:
+        data = json.load(f)
+
+    yield data

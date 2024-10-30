@@ -1,0 +1,122 @@
+{
+    "test__extract_and_insert_metadata_9": {
+        "st1": {
+            "st2": [
+                {
+                    "st3": "value1"
+                },
+                {
+                    "st3": "value2"
+                }
+            ]
+        }
+    },
+    "test__extract_and_insert_metadata_11": {
+        "st1": {
+            "st2": [
+                {
+                    "st3": "value1"
+                },
+                {
+                    "st3": "value2"
+                }
+            ]
+        }
+    },
+    "test__extract_and_insert_metadata_12": {
+        "st1": [
+            {
+                "st2": [
+                    {
+                        "st3": {
+                            "st4": "value1"
+                        }
+                    },
+                    {
+                        "st3": {
+                            "st4": "value2"
+                        }
+                    }
+                ]
+            },
+            {
+                "st2": [
+                    {
+                        "st3": {
+                            "st4": "value3"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "test__extract_and_insert_metadata_20": {
+        "st1": [
+            {
+                "st2": [
+                    {
+                        "st3": {
+                            "st4": "value1",
+                            "st5": "value2"
+                        }
+                    },
+                    {
+                        "st3": {
+                            "st4": "value3",
+                            "st5": "value4"
+                        }
+                    }
+                ]
+            },
+            {
+                "st2": [
+                    {
+                        "st3": {
+                            "st4": "value5",
+                            "st5": "value6"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "test__handle_list_1": {
+        "st1": [
+            {
+                "st4": "value1"
+            },
+            {
+                "st2": {
+                    "st3": "value2"
+                },
+                "st3": "value3"
+            },
+            {
+                "st3": "value4"
+            }
+        ]
+    },
+    "test__handle_list_2": {
+        "st1": [
+            {
+                "st4": "value1"
+            },
+            {
+                "st2": [
+                    {
+                        "st3": {
+                            "st4": "value2"
+                        }
+                    }
+                ]
+            },
+            {
+                "st2": [
+                    {
+                        "st4": "value3"
+                    }
+                ]
+            }
+        ]
+    }
+}
