@@ -16,7 +16,8 @@ logger = getLogger(__name__)
 class DefinitionManager():
     """マッピング定義の管理を行うクラスです。"""
 
-    def get_and_filter_mapping_definition(self, schema: str, storage: str, filter_properties: list = None) -> dict:
+    @classmethod
+    def get_and_filter_mapping_definition(cls, schema: str, storage: str, filter_properties: list = None) -> dict:
         """マッピング定義の取得と絞り込みを行うメソッドです。
 
         マッピング定義を取得した後、filter_propertiesに要素が存在する場合はそれを用いて絞り込みを行います。
@@ -37,7 +38,7 @@ class DefinitionManager():
             if isinstance(filter_properties, list) and not filter_properties:
                 raise NotFoundKeyError("絞り込むプロパティが指定されていません。")
 
-            mapping_definition = self._read_mapping_definition(schema, storage)
+            mapping_definition = cls._read_mapping_definition(schema, storage)
             # 要素が存在する場合のみ絞り込みを行います。
             if filter_properties:
                 filtered_definition = {}
@@ -68,7 +69,8 @@ class DefinitionManager():
             logger.error(e)
             raise
 
-    def _read_mapping_definition(self, schema: str, storage: str) -> dict:
+    @classmethod
+    def _read_mapping_definition(cls, schema: str, storage: str) -> dict:
         """マッピング定義ファイルの読み取りを行うメソッドです。
 
         Args:

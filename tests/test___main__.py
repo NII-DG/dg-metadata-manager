@@ -74,6 +74,8 @@ def test_main_success_1():
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    json.loads(out) # JSONの形式の文字列が出力されていればOK
 
 
 def test_main_success_2():
@@ -83,9 +85,12 @@ def test_main_success_2():
            "--token", grdm_token, "--id", grdm_project_id,
            "--filter", "name"]
     out, err, rt = exe_cmd(cmd)
-    print(out)
 
     assert rt == 0
+    assert err == ""
+    out_json = json.loads(out)
+    assert len(out_json) == 1   # レスポンスが引数で指定したノードのみであることの確認
+    assert "name" in out_json
 
 
 def test_main_success_3():
@@ -93,10 +98,13 @@ def test_main_success_3():
 
     cmd = ["metadatamanager", "get", "--schema", "RF", "--storage", "GRDM",
            "--token", grdm_token, "--id", grdm_project_id,
-           "--filter", "researcher[].email[]"]
+           "--filter", "researcher"]
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    out_json = json.loads(out)
+    assert len(out_json['researcher'][0]) > 0   # レスポンスが引数で指定したノードの配下を含むことの確認
 
 
 def test_main_success_4():
@@ -108,6 +116,10 @@ def test_main_success_4():
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    out_json = json.loads(out)
+    assert len(out_json) == 1
+    assert "name" in out_json
 
 
 def test_main_success_5():
@@ -119,6 +131,11 @@ def test_main_success_5():
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    out_json = json.loads(out)
+    assert len(out_json) == 2
+    assert "name" in out_json
+    assert "description" in out_json
 
 
 def test_main_success_6(create_dummy_filter_files):
@@ -130,6 +147,10 @@ def test_main_success_6(create_dummy_filter_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    out_json = json.loads(out)
+    assert len(out_json) == 1
+    assert "name" in out_json
 
 
 def test_main_success_7(create_dummy_filter_files):
@@ -141,6 +162,10 @@ def test_main_success_7(create_dummy_filter_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    out_json = json.loads(out)
+    assert len(out_json) == 1
+    assert "name" in out_json
 
 
 def test_main_success_8(tmp_path):
@@ -154,8 +179,9 @@ def test_main_success_8(tmp_path):
 
     assert rt == 0
     assert out == ""
+    assert err == ""
     with open(output_path) as f:
-        result = json.load(f)   # JSONファイルとして読み込めればOK
+        json.load(f)   # JSONファイルとして読み込めればOK
 
 
 def test_main_success_9():
@@ -167,6 +193,8 @@ def test_main_success_9():
     out, err, rt = exe_cmd(cmd)
 
     assert rt == 0
+    assert err == ""
+    json.loads(out) # JSONの形式の文字列が出力されていればOK
 
 
 def test_main_failure_1():
@@ -177,6 +205,7 @@ def test_main_failure_1():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: the following arguments are required: --schema" in err
 
 
@@ -188,6 +217,7 @@ def test_main_failure_2():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --schema: expected one argument" in err
 
 
@@ -199,6 +229,7 @@ def test_main_failure_3():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: マッピング定義ファイルが見つかりません。" in err
 
 
@@ -210,6 +241,7 @@ def test_main_failure_4():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: the following arguments are required: --storage" in err
 
 
@@ -221,6 +253,7 @@ def test_main_failure_5():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --storage: expected one argument" in err
 
 
@@ -232,6 +265,7 @@ def test_main_failure_6():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: 対応していないストレージが指定されました" in err
 
 
@@ -243,6 +277,7 @@ def test_main_failure_7():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: 認証に失敗しました" in err
 
 
@@ -254,6 +289,7 @@ def test_main_failure_8():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --token: expected one argument" in err
 
 
@@ -265,6 +301,7 @@ def test_main_failure_9():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: 認証に失敗しました" in err
 
 
@@ -276,6 +313,7 @@ def test_main_failure_10():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: トークンのアクセス権が不足しています" in err
 
 
@@ -287,6 +325,7 @@ def test_main_failure_11():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: プロジェクトが存在しません" in err
 
 
@@ -298,6 +337,7 @@ def test_main_failure_12():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --id: expected one argument" in err
 
 
@@ -309,6 +349,7 @@ def test_main_failure_13():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: プロジェクトが存在しません" in err
 
 
@@ -320,6 +361,7 @@ def test_main_failure_14():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: プロジェクトへのアクセス権がありません" in err
 
 
@@ -332,6 +374,7 @@ def test_main_failure_15():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: 絞り込むプロパティが指定されていません。" in err
 
 
@@ -344,7 +387,8 @@ def test_main_failure_16():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
-    assert "エラーが発生しました: 指定したプロパティ: dummy が存在しません" in err
+    assert out == ""
+    assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません" in err
 
 
 def test_main_failure_17():
@@ -356,6 +400,7 @@ def test_main_failure_17():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --filter-file: expected one argument" in err
 
 
@@ -368,6 +413,7 @@ def test_main_failure_18():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: ファイルが見つかりません: 'dummy.json'" in err
 
 
@@ -380,6 +426,7 @@ def test_main_failure_19(create_dummy_filter_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: フィルタファイルのフォーマットに誤りがあります" in err
 
 
@@ -392,6 +439,7 @@ def test_main_failure_20(create_dummy_filter_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません" in err
 
 
@@ -404,6 +452,7 @@ def test_main_failure_22():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --file: expected one argument" in err
 
 
@@ -416,6 +465,7 @@ def test_main_failure_23(create_dummy_output_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: The file 'output2.json' already exists" in err
 
 
@@ -428,6 +478,7 @@ def test_main_failure_24(create_dummy_output_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "エラーが発生しました: The directory 'dummy' does not exist." in err
 
 
@@ -440,6 +491,7 @@ def test_main_failure_25(create_dummy_output_files):
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "Permission denied: 'no_access/output4.json'" in err
 
 
@@ -452,6 +504,7 @@ def test_main_failure_26():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
+    assert out == ""
     assert "metadatamanager get: error: argument --project-metadata-id: expected one argument" in err
 
 
@@ -464,4 +517,5 @@ def test_main_failure_27():
     out, err, rt = exe_cmd(cmd)
 
     assert rt != 0
-    assert "metadatamanager get: error: argument --project-metadata-id: expected one argument" in err
+    assert out == ""
+    assert "エラーが発生しました: 指定したIDのプロジェクトメタデータが存在しません" in err
