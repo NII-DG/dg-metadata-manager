@@ -217,10 +217,13 @@ class GrdmMapping():
 
         # 値がdict構造の場合
         elif isinstance(source[key], dict):
-            list_info = components.get("list")
-            if list_info and key in list_info:
+            link_list_info = components.get("list")
+            complete_storage_keys = components.get("value").split(".")
+            current_key_index = index + len(complete_storage_keys) - len(storage_keys)
+            link_list_info = link_list_info.get(".".join(complete_storage_keys[:current_key_index + 1])) if link_list_info else None
+            if link_list_info:
                 raise MappingDefinitionError(
-                    f"オブジェクト：{key}がリストとして定義されています。({schema_property})")
+                    f"オブジェクト：{link_list_info}がリストとして定義されています。({schema_property})")
             else:
                 source = source[key]
 
