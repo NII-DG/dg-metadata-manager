@@ -223,7 +223,7 @@ class GrdmMapping():
             link_list_info = link_list_info.get(".".join(complete_storage_keys[:current_key_index + 1])) if link_list_info else None
             if link_list_info:
                 raise MappingDefinitionError(
-                    f"オブジェクト：{key}がリストとして定義されています。({schema_property})")
+                    f"オブジェクト：{link_list_info}がリストとして定義されています。({schema_property})")
             else:
                 source = source[key]
 
