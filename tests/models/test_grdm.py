@@ -669,6 +669,8 @@ class TestGrdmAccess():
 
         # 結果の確認
         assert mock_obj.call_count == max_requests
+
+
 class TestGrdmMapping():
     """GrdmMappingクラスをテストするためのクラスです。"""
 
