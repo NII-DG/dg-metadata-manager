@@ -680,11 +680,11 @@ class TestGrdmMapping():
         metadata_sources = ["member_info"]
         source_data = {}
 
-        #テスト用の仮のマッピング定義と期待されるスキーマを取得する。
+        # テスト用の仮のマッピング定義と期待されるスキーマを取得する。
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_1"]
         expected_new_schema = read_test_expected_schema["test_mapping_metadata_1"]
 
-        #_mapping_metadata内で呼び出す各関数をモック化
+        # _mapping_metadata内で呼び出す各関数をモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
@@ -694,12 +694,12 @@ class TestGrdmMapping():
 
         target_class = GrdmMapping()
         metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
-        #戻り値が期待通りかの検証
+        # 戻り値が期待通りかの検証
         assert metadata == expected_new_schema
-        #モック化した各関数が想定された数だけ呼び出されているかの検証
+        # モック化した各関数が想定された数だけ呼び出されているかの検証
         assert mock__add_property.call_count == 1
         assert mock__extract_and_insert_metadata.call_count == 2
-        #各プロパティが正確に処理されているかの検証
+        # 各プロパティが正確に処理されているかの検証
         schema_property_arg = mock__add_property.call_args_list[0][0][1]
         assert schema_property_arg == "sc1[].sc3[].sc4[]"
 
@@ -771,10 +771,10 @@ class TestGrdmMapping():
     def test_mapping_metadata_4(self, mocker):
         """(異常系テスト 7)GRDMの認証に失敗した場合のテストケースです。"""
 
-        #認証を行う関数が呼ばれた際にエラーを返すようにモック化
+        # 認証を行う関数が呼ばれた際にエラーを返すようにモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication", side_effect=AuthenticationError("認証に失敗しました。"))
 
-        #AuthenticationErrorをキャッチする形でテストを実行
+        # AuthenticationErrorをキャッチする形でテストを実行
         with pytest.raises(AuthenticationError) as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "invalid_token", "invalid_project_id")
@@ -861,14 +861,14 @@ class TestGrdmMapping():
     def test_mapping_metadata_10(self, mocker):
         """(異常系テスト)_find_metadata_sourcesで特定した取得先の中にGRDMに存在しない取得先が含まれていた場合のテストケースです。"""
 
-        test_mapping_definition ={}
-        metadata_sources =["project_info", "non_existent_info", "file_metadata", "non_existent_metadata" ]
+        test_mapping_definition = {}
+        metadata_sources = ["project_info", "non_existent_info", "file_metadata", "non_existent_metadata"]
         error_sources = ["non_existent_info", "non_existent_metadata"]
 
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
-        mock_get_project_info =mocker.patch("dg_mm.models.grdm.GrdmAccess.get_project_info")
+        mock_get_project_info = mocker.patch("dg_mm.models.grdm.GrdmAccess.get_project_info")
         mock_get_file_matadata = mocker.patch("dg_mm.models.grdm.GrdmAccess.get_file_metadata")
 
         with pytest.raises(MappingDefinitionError) as e:
@@ -892,7 +892,7 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect = [NotFoundKeyError(error_keys), NotFoundKeyError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[NotFoundKeyError(error_keys), NotFoundKeyError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
 
         with pytest.raises(NotFoundKeyError)as e:
             target_class = GrdmMapping()
@@ -942,7 +942,7 @@ class TestGrdmMapping():
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
         assert mock__extract_and_insert_metadata.call_count == 2
-        assert str(e.value) ==  "キーの不一致が確認されました。:['sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])'], データの変換に失敗しました。：['型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)']"
+        assert str(e.value) == "キーの不一致が確認されました。:['sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])'], データの変換に失敗しました。：['型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)']"
 
     def test__find_metadata_sources_1(self, read_test_mapping_definition):
         """(正常系テスト 7)マッピング定義にある全取得先を取得する場合のテストケースです。"""
@@ -952,7 +952,7 @@ class TestGrdmMapping():
         test_mapping_definition = read_test_mapping_definition["test__find_metadata_sources_1"]
 
         target_class = GrdmMapping()
-        #インスタンス変数にテスト用のマッピング定義を設定
+        # インスタンス変数にテスト用のマッピング定義を設定
         target_class._mapping_definition = test_mapping_definition
 
         metadata_sources = target_class._find_metadata_sources()
@@ -1031,9 +1031,10 @@ class TestGrdmMapping():
         }
         expected_schema = {
             "sc1": {
-                "sc2": ["value1",
-                        "value2"
-                        ]
+                "sc2": [
+                    "value1",
+                    "value2"
+                ]
             }
         }
 
@@ -1379,7 +1380,6 @@ class TestGrdmMapping():
             }
         }
 
-
         sources = read_test_source_data["test__extract_and_insert_metadata_12"]
         expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_12"]
 
@@ -1706,8 +1706,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2.st3",
-            "list" : {
-                "st1" : "sc1"
+            "list": {
+                "st1": "sc1"
             }
         }
         index = 0
@@ -1721,7 +1721,7 @@ class TestGrdmMapping():
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
         assert e.value.args[0] == [f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})",
-                                    f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})"]
+                                   f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})"]
 
     def test__handle_list_2(self, read_test_source_data):
         """（異常系テスト）異なる複数のリスト内にキーが存在しないオブジェクトが存在する場合のテストケースです。"""
@@ -1749,7 +1749,7 @@ class TestGrdmMapping():
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
         assert e.value.args[0] == [f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})",
-                                    f"['st3と一致するストレージのキーが見つかりませんでした。({schema_property})']"]
+                                   f"['st3と一致するストレージのキーが見つかりませんでした。({schema_property})']"]
 
     def test__handle_list_3(self):
         """（異常系テスト）マッピング定義の'list'で指定されたインデックスに対応するデータがストレージに存在しない場合のテストケースです。"""
@@ -1761,8 +1761,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1" : 2
+            "list": {
+                "st1": 2
             }
         }
         sources = {
@@ -1780,7 +1780,7 @@ class TestGrdmMapping():
             target_class._handle_list(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
-        assert str(e.value) ==  f"指定されたインデックス:2が存在しません({schema_property})"
+        assert str(e.value) == f"指定されたインデックス:2が存在しません({schema_property})"
 
     def test__get_and_insert_final_key_value_1(self):
         """（正常系テスト）末端のキーが存在しない場合のテストケースです。"""
@@ -1795,9 +1795,9 @@ class TestGrdmMapping():
         source = {}
         final_key = "st2"
 
-        expected_schema ={
-            "sc1" : {
-                "sc2" :None
+        expected_schema = {
+            "sc1": {
+                "sc2": None
             }
         }
 
@@ -1815,8 +1815,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1.st2" :"sc1"
+            "list": {
+                "st1.st2": "sc1"
             }
         }
         source = {
@@ -1826,13 +1826,13 @@ class TestGrdmMapping():
             ]
         }
         final_key = "st2"
-        expected_schema ={
-            "sc1" :[
+        expected_schema = {
+            "sc1": [
                 {
-                    "sc2" :"value1"
+                    "sc2": "value1"
                 },
                 {
-                    "sc2" : "value2"
+                    "sc2": "value2"
                 }
             ]
         }
@@ -1851,8 +1851,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1.st2" : 1
+            "list": {
+                "st1.st2": 1
             }
         }
         source = {
@@ -1862,10 +1862,10 @@ class TestGrdmMapping():
             ]
         }
         final_key = "st2"
-        expected_schema ={
-            "sc1" :{
-                    "sc2" :"value2"
-                }
+        expected_schema = {
+            "sc1": {
+                "sc2": "value2"
+            }
         }
 
         target_class = GrdmMapping()
@@ -1882,8 +1882,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1.st2" : 3
+            "list": {
+                "st1.st2": 3
             }
         }
         source = {
@@ -1900,7 +1900,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"指定されたインデックスが存在しません({schema_property})"
 
-    def test__get_and_insert_final_key_value_5(self ):
+    def test__get_and_insert_final_key_value_5(self):
         """（異常系テスト）マッピング定義に記載されているストレージのキーが不足している場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
@@ -1912,7 +1912,7 @@ class TestGrdmMapping():
         }
         source = {
             "st2": {
-                "st3" :"value1"
+                "st3": "value1"
             }
         }
         final_key = "st2"
@@ -1926,9 +1926,9 @@ class TestGrdmMapping():
     def test__add_property_1(self):
         """（正常系テスト）スキーマに既にリスト構造が存在しており、そのリストがストレージと対応付いていない場合のテストケースです。"""
         new_schema = {
-            "sc1" :[
+            "sc1": [
                 {
-                    "sc2" : "value1"
+                    "sc2": "value1"
                 }
             ]
         }
@@ -1937,10 +1937,10 @@ class TestGrdmMapping():
         storage_data = ["value2"]
         schema_link_list = {}
         expected_schema = {
-            "sc1" :[
+            "sc1": [
                 {
-                    "sc2" : "value1",
-                    "sc3" : "value2"
+                    "sc2": "value1",
+                    "sc3": "value2"
                 }
             ]
         }
@@ -1958,9 +1958,9 @@ class TestGrdmMapping():
         storage_data = []
         schema_link_list = {}
         expected_schema = {
-            "sc1" :{
-                "sc2" : []
-                }
+            "sc1": {
+                "sc2": []
+            }
         }
 
         target_class = GrdmMapping()
@@ -1976,9 +1976,9 @@ class TestGrdmMapping():
         storage_data = []
         schema_link_list = {}
         expected_schema = {
-            "sc1" :{
-                "sc2" : None
-                }
+            "sc1": {
+                "sc2": None
+            }
         }
 
         target_class = GrdmMapping()
@@ -1989,26 +1989,26 @@ class TestGrdmMapping():
     def test__add_property_4(self):
         """（正常系テスト）既にデータが存在しているリストにデータを加える場合のテストケースです。"""
         new_schema = {
-            "sc1" : {
-                    "sc2" : [
-                        "value1",
-                        "value2"
-                    ]
-                }
+            "sc1": {
+                "sc2": [
+                    "value1",
+                    "value2"
+                ]
+            }
         }
         schema_property = "sc1.sc2[]"
         type = "string"
         storage_data = ["value3", "value4"]
         schema_link_list = {}
         expected_schema = {
-            "sc1" :{
-                    "sc2" : [
-                        "value1",
-                        "value2",
-                        "value3",
-                        "value4"
-                    ]
-                }
+            "sc1": {
+                "sc2": [
+                    "value1",
+                    "value2",
+                    "value3",
+                    "value4"
+                ]
+            }
         }
 
         target_class = GrdmMapping()
@@ -2034,7 +2034,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"マッピング定義に誤りがあります({schema_property})"
 
-    def test__add_property6(self):
+    def test__add_property_6(self):
         """（異常系テスト）既にlist構造をもつキーに対してdictとしてアクセスしようとした場合のテストケースです。"""
         new_schema = {
             "sc1": [
@@ -2062,7 +2062,7 @@ class TestGrdmMapping():
         storage_data = ["value1"]
         schema_link_list = {}
 
-        mocker.patch("dg_mm.models.grdm.GrdmMapping._convert_data_type", side_effect = MappingDefinitionError)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping._convert_data_type", side_effect=MappingDefinitionError)
 
         with pytest.raises(MappingDefinitionError) as e:
             target_class = GrdmMapping()
@@ -2072,55 +2072,55 @@ class TestGrdmMapping():
 
     def test__convert_data_type_1(self):
         """（正常系テスト）bool型のデータをstring型に変換する場合のテストケースです。"""
-        data =[True, False]
+        data = [True, False]
         type = "string"
 
         expected_data = ["True", "False"]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_2(self):
         """（正常系テスト）bool型のデータをbool型に変換する場合のテストケースです。"""
-        data =[True]
+        data = [True]
         type = "boolean"
 
         expected_data = [True]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_3(self):
         """（正常系テスト）string型のデータをbool型に変換する場合のテストケースです。"""
-        data =["True", "false", "TRUE"]
+        data = ["True", "false", "TRUE"]
         type = "boolean"
 
         expected_data = [True, False, True]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_4(self):
         """（正常系テスト）小数点を含む数値のstring型データをfloat型に変換する場合のテストコードです。"""
-        data =["1.156"]
+        data = ["1.156"]
         type = "number"
 
         expected_data = [1.156]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_5(self):
         """（異常系テスト）データがbool型に変換できないint型の場合のテストケースです。"""
-        data =[10]
+        data = [10]
         type = "boolean"
 
         with pytest.raises(MetadataTypeError):
@@ -2129,7 +2129,7 @@ class TestGrdmMapping():
 
     def test__convert_data_type_6(self):
         """（異常系テスト）データがbool型に変換できないstring型の場合のテストケースです。"""
-        data =["Any"]
+        data = ["Any"]
         type = "boolean"
 
         with pytest.raises(MetadataTypeError):
@@ -2138,7 +2138,7 @@ class TestGrdmMapping():
 
     def test__convert_data_type_7(self):
         """（異常系テスト）スキーマのデータの型が定義されていない場合のテストケースです。"""
-        data =["text"]
+        data = ["text"]
         type = None
 
         with pytest.raises(MappingDefinitionError):

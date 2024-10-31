@@ -20,6 +20,7 @@ def create_dummy_definition():
     # ファイル削除
     os.remove(path)
 
+
 @pytest.fixture
 def create_test_definition():
     """テスト用のマッピング定義ファイルを作成します。"""
@@ -31,11 +32,12 @@ def create_test_definition():
     with open(path, mode='w') as f:
         json.dump({"test_property": {"test_definition": "value"}}, f)
 
-    yield  schema, storage
+    yield schema, storage
 
     # 後処理
     # ファイル削除
     os.remove(path)
+
 
 @pytest.fixture
 def create_invalid_test_definition():
@@ -54,6 +56,7 @@ def create_invalid_test_definition():
     # ファイル削除
     os.remove(path)
 
+
 @pytest.fixture
 def read_test_mapping_definition():
     """テスト時に用いるマッピング定義を読み込みます。"""
@@ -65,6 +68,7 @@ def read_test_mapping_definition():
 
     return data
 
+
 @pytest.fixture
 def read_test_expected_schema():
     """テスト実行時に出力が予測されるスキーマを読み込みます。"""
@@ -75,6 +79,7 @@ def read_test_expected_schema():
         data = json.load(f)
 
     return data
+
 
 @pytest.fixture
 def read_test_source_data():
