@@ -10,7 +10,7 @@ from dg_mm.errors import (
     AccessDeniedError,
     APIError,
     InvalidTokenError,
-    InvalidProjectError,
+    InvalidIdError,
     DataFormatError,
     MappingDefinitionError,
     MetadataTypeError,
@@ -223,7 +223,7 @@ class GrdmMapping():
             link_list_info = link_list_info.get(".".join(complete_storage_keys[:current_key_index + 1])) if link_list_info else None
             if link_list_info:
                 raise MappingDefinitionError(
-                    f"オブジェクト：{link_list_info}がリストとして定義されています。({schema_property})")
+                    f"オブジェクト：{'.'.join(complete_storage_keys[:current_key_index + 1])}がリストとして定義されています。({schema_property})")
             else:
                 source = source[key]
 
@@ -535,6 +535,7 @@ class GrdmAccess():
         self._domain = self._config_file["settings"]["domain"]
         self._timeout = self._config_file["settings"].getfloat("timeout")
         self._max_requests = self._config_file["settings"].getint("max_requests")
+        self._is_authenticated = None
 
     def check_authentication(self, token: str, project_id: str) -> bool:
         """アクセス権の認証を行うメソッドです。
@@ -598,7 +599,7 @@ class GrdmAccess():
 
         Raises:
             AccessDeniedError:アクセス権不正
-            InvalidProjectError:プロジェクト不正
+            InvalidIdError:プロジェクト不正
             APIError:APIのサーバーエラー、タイムアウト
         """
         base_url = self._config_file["url"]["project_info"]
@@ -614,10 +615,10 @@ class GrdmAccess():
                 raise AccessDeniedError("プロジェクトへのアクセス権がありません")
             elif response.status_code == 404:
                 logger.error(f"Project not found: {e}")
-                raise InvalidProjectError("プロジェクトが存在しません")
+                raise InvalidIdError("プロジェクトが存在しません")
             elif response.status_code == 410:
                 logger.error(f"Project deleted: {e}")
-                raise InvalidProjectError("プロジェクトが削除されています")
+                raise InvalidIdError("プロジェクトが削除されています")
             elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")

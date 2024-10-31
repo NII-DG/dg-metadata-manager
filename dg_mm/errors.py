@@ -1,31 +1,33 @@
 """エラーのモジュールです。"""
 
-class NotFoundMappingDefinitionError(Exception):
+
+class MetadatamanagerError(Exception):
+    """MetadataManagerのエラー"""
+    pass
+
+
+class NotFoundMappingDefinitionError(MetadatamanagerError):
     """マッピング定義ファイルが見つからないエラーのクラスです。"""
     pass
 
-class MetadataTypeError(Exception):
+
+class MetadataTypeError(MetadatamanagerError):
     """データの型が間違っているエラーのクラスです。"""
     pass
 
 
-class NotFoundKeyError(Exception):
+class NotFoundKeyError(MetadatamanagerError):
     """キーが見つからない場合のエラークラスです。"""
     pass
 
 
-class MappingDefinitionError(Exception):
+class MappingDefinitionError(MetadatamanagerError):
     """マッピング定義に誤りがある場合のエラークラスです。"""
     pass
 
 
-class DataFormatError(Exception):
+class DataFormatError(MetadatamanagerError):
     """データの形式に問題がある場合のエラーです。"""
-    pass
-
-
-class MetadatamanagerError(Exception):
-    """MetadataManagerのエラー"""
     pass
 
 
@@ -49,14 +51,15 @@ class InvalidTokenError(MetadatamanagerError):
     pass
 
 
-class InvalidProjectError(MetadatamanagerError):
-    """プロジェクト不正の場合のエラー"""
+class InvalidIdError(MetadatamanagerError):
+    """ID不正の場合のエラー"""
     pass
 
 
 class InvalidStorageError(MetadatamanagerError):
     """対応していないストレージを指定した場合のエラー"""
     pass
+
 
 class MetadataNotFoundError(MetadatamanagerError):
     """メタデータが見つからなかった場合のエラー"""

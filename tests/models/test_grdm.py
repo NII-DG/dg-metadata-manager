@@ -1,30 +1,32 @@
 """grdm.pyをテストするためのモジュールです。"""
 import json
+import pytest
+import requests
 from multiprocessing import AuthenticationError
 from typing import Counter
+from unittest.mock import Mock
 
-import pytest
 
+from dg_mm.models.grdm import GrdmAccess, GrdmMapping
 from dg_mm.errors import (
+    InvalidTokenError,
+    AccessDeniedError,
+    APIError,
+    InvalidIdError,
+    MetadataNotFoundError,
+    UnauthorizedError,
     DataFormatError,
     MappingDefinitionError,
     MetadataTypeError,
-    NotFoundKeyError
+    NotFoundKeyError,
 )
-from dg_mm.models.grdm import GrdmAccess, GrdmMapping
 
 
-class MockResponse():
-    def __init__(self, code, body=None):
-        self.code = code
-        self.body = body
-
-    def json(self):
-        return self.body
-
-    @property
-    def status_code(self):
-        return self.code
+def create_mock_response(code, body=None):
+    response = requests.models.Response()
+    response.status_code = code
+    response.json = Mock(return_value=body)
+    return response
 
 
 def read_json(path):
@@ -32,18 +34,13 @@ def read_json(path):
         return json.load(f)
 
 
-class TestGrdmAccess():
-    def test__check_token_valid_1(self, mocker):
-        # モック化
-        api_res = read_json('tests/models/data/grdm_api_profile_1.json')
-        mocker.patch('requests.get', return_value=MockResponse(200, api_res))
+def create_authorized_grdm_access():
+    instance = GrdmAccess()
+    instance._token = "valid_token"
+    instance._project_id = "valid_project_id"
+    instance._is_authenticated = True
+    return instance
 
-        # テスト実行
-        target_class = GrdmAccess()
-        actual = target_class._check_token_valid()
-
-        # 結果の確認
-        assert actual == True
 
 class TestGrdmMapping():
     """GrdmMappingクラスをテストするためのクラスです。"""
@@ -54,11 +51,11 @@ class TestGrdmMapping():
         metadata_sources = ["member_info"]
         source_data = {}
 
-        #テスト用の仮のマッピング定義と期待されるスキーマを取得する。
+        # テスト用の仮のマッピング定義と期待されるスキーマを取得する。
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_1"]
         expected_new_schema = read_test_expected_schema["test_mapping_metadata_1"]
 
-        #_mapping_metadata内で呼び出す各関数をモック化
+        # _mapping_metadata内で呼び出す各関数をモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
@@ -68,12 +65,12 @@ class TestGrdmMapping():
 
         target_class = GrdmMapping()
         metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
-        #戻り値が期待通りかの検証
+        # 戻り値が期待通りかの検証
         assert metadata == expected_new_schema
-        #モック化した各関数が想定された数だけ呼び出されているかの検証
+        # モック化した各関数が想定された数だけ呼び出されているかの検証
         assert mock__add_property.call_count == 1
         assert mock__extract_and_insert_metadata.call_count == 2
-        #各プロパティが正確に処理されているかの検証
+        # 各プロパティが正確に処理されているかの検証
         schema_property_arg = mock__add_property.call_args_list[0][0][1]
         assert schema_property_arg == "sc1[].sc3[].sc4[]"
 
@@ -145,10 +142,10 @@ class TestGrdmMapping():
     def test_mapping_metadata_4(self, mocker):
         """(異常系テスト 7)GRDMの認証に失敗した場合のテストケースです。"""
 
-        #認証を行う関数が呼ばれた際にエラーを返すようにモック化
+        # 認証を行う関数が呼ばれた際にエラーを返すようにモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication", side_effect=AuthenticationError("認証に失敗しました。"))
 
-        #AuthenticationErrorをキャッチする形でテストを実行
+        # AuthenticationErrorをキャッチする形でテストを実行
         with pytest.raises(AuthenticationError) as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "invalid_token", "invalid_project_id")
@@ -235,14 +232,14 @@ class TestGrdmMapping():
     def test_mapping_metadata_10(self, mocker):
         """(異常系テスト)_find_metadata_sourcesで特定した取得先の中にGRDMに存在しない取得先が含まれていた場合のテストケースです。"""
 
-        test_mapping_definition ={}
-        metadata_sources =["project_info", "non_existent_info", "file_metadata", "non_existent_metadata" ]
+        test_mapping_definition = {}
+        metadata_sources = ["project_info", "non_existent_info", "file_metadata", "non_existent_metadata"]
         error_sources = ["non_existent_info", "non_existent_metadata"]
 
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
-        mock_get_project_info =mocker.patch("dg_mm.models.grdm.GrdmAccess.get_project_info")
+        mock_get_project_info = mocker.patch("dg_mm.models.grdm.GrdmAccess.get_project_info")
         mock_get_file_matadata = mocker.patch("dg_mm.models.grdm.GrdmAccess.get_file_metadata")
 
         with pytest.raises(MappingDefinitionError) as e:
@@ -266,7 +263,7 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect = [NotFoundKeyError(error_keys), NotFoundKeyError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[NotFoundKeyError(error_keys), NotFoundKeyError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
 
         with pytest.raises(NotFoundKeyError)as e:
             target_class = GrdmMapping()
@@ -316,7 +313,7 @@ class TestGrdmMapping():
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
         assert mock__extract_and_insert_metadata.call_count == 2
-        assert str(e.value) ==  "キーの不一致が確認されました。:['sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])'], データの変換に失敗しました。：['型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)']"
+        assert str(e.value) == "キーの不一致が確認されました。:['sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])'], データの変換に失敗しました。：['型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)']"
 
     def test__find_metadata_sources_1(self, read_test_mapping_definition):
         """(正常系テスト 7)マッピング定義にある全取得先を取得する場合のテストケースです。"""
@@ -326,7 +323,7 @@ class TestGrdmMapping():
         test_mapping_definition = read_test_mapping_definition["test__find_metadata_sources_1"]
 
         target_class = GrdmMapping()
-        #インスタンス変数にテスト用のマッピング定義を設定
+        # インスタンス変数にテスト用のマッピング定義を設定
         target_class._mapping_definition = test_mapping_definition
 
         metadata_sources = target_class._find_metadata_sources()
@@ -405,9 +402,10 @@ class TestGrdmMapping():
         }
         expected_schema = {
             "sc1": {
-                "sc2": ["value1",
-                        "value2"
-                        ]
+                "sc2": [
+                    "value1",
+                    "value2"
+                ]
             }
         }
 
@@ -753,7 +751,6 @@ class TestGrdmMapping():
             }
         }
 
-
         sources = read_test_source_data["test__extract_and_insert_metadata_12"]
         expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_12"]
 
@@ -1080,8 +1077,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2.st3",
-            "list" : {
-                "st1" : "sc1"
+            "list": {
+                "st1": "sc1"
             }
         }
         index = 0
@@ -1095,7 +1092,7 @@ class TestGrdmMapping():
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
         assert e.value.args[0] == [f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})",
-                                    f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})"]
+                                   f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})"]
 
     def test__handle_list_2(self, read_test_source_data):
         """（異常系テスト）異なる複数のリスト内にキーが存在しないオブジェクトが存在する場合のテストケースです。"""
@@ -1123,7 +1120,7 @@ class TestGrdmMapping():
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
         assert e.value.args[0] == [f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})",
-                                    f"['st3と一致するストレージのキーが見つかりませんでした。({schema_property})']"]
+                                   f"['st3と一致するストレージのキーが見つかりませんでした。({schema_property})']"]
 
     def test__handle_list_3(self):
         """（異常系テスト）マッピング定義の'list'で指定されたインデックスに対応するデータがストレージに存在しない場合のテストケースです。"""
@@ -1135,8 +1132,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1" : 2
+            "list": {
+                "st1": 2
             }
         }
         sources = {
@@ -1154,7 +1151,7 @@ class TestGrdmMapping():
             target_class._handle_list(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
-        assert str(e.value) ==  f"指定されたインデックス:2が存在しません({schema_property})"
+        assert str(e.value) == f"指定されたインデックス:2が存在しません({schema_property})"
 
     def test__get_and_insert_final_key_value_1(self):
         """（正常系テスト）末端のキーが存在しない場合のテストケースです。"""
@@ -1169,9 +1166,9 @@ class TestGrdmMapping():
         source = {}
         final_key = "st2"
 
-        expected_schema ={
-            "sc1" : {
-                "sc2" :None
+        expected_schema = {
+            "sc1": {
+                "sc2": None
             }
         }
 
@@ -1189,8 +1186,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1.st2" :"sc1"
+            "list": {
+                "st1.st2": "sc1"
             }
         }
         source = {
@@ -1200,13 +1197,13 @@ class TestGrdmMapping():
             ]
         }
         final_key = "st2"
-        expected_schema ={
-            "sc1" :[
+        expected_schema = {
+            "sc1": [
                 {
-                    "sc2" :"value1"
+                    "sc2": "value1"
                 },
                 {
-                    "sc2" : "value2"
+                    "sc2": "value2"
                 }
             ]
         }
@@ -1225,8 +1222,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1.st2" : 1
+            "list": {
+                "st1.st2": 1
             }
         }
         source = {
@@ -1236,10 +1233,10 @@ class TestGrdmMapping():
             ]
         }
         final_key = "st2"
-        expected_schema ={
-            "sc1" :{
-                    "sc2" :"value2"
-                }
+        expected_schema = {
+            "sc1": {
+                "sc2": "value2"
+            }
         }
 
         target_class = GrdmMapping()
@@ -1256,8 +1253,8 @@ class TestGrdmMapping():
             "type": "string",
             "source": "project_metadata",
             "value": "st1.st2",
-            "list" : {
-                "st1.st2" : 3
+            "list": {
+                "st1.st2": 3
             }
         }
         source = {
@@ -1274,7 +1271,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"指定されたインデックスが存在しません({schema_property})"
 
-    def test__get_and_insert_final_key_value_5(self ):
+    def test__get_and_insert_final_key_value_5(self):
         """（異常系テスト）マッピング定義に記載されているストレージのキーが不足している場合のテストケースです。"""
         new_schema = {}
         schema_link_list = {}
@@ -1286,7 +1283,7 @@ class TestGrdmMapping():
         }
         source = {
             "st2": {
-                "st3" :"value1"
+                "st3": "value1"
             }
         }
         final_key = "st2"
@@ -1300,9 +1297,9 @@ class TestGrdmMapping():
     def test__add_property_1(self):
         """（正常系テスト）スキーマに既にリスト構造が存在しており、そのリストがストレージと対応付いていない場合のテストケースです。"""
         new_schema = {
-            "sc1" :[
+            "sc1": [
                 {
-                    "sc2" : "value1"
+                    "sc2": "value1"
                 }
             ]
         }
@@ -1311,10 +1308,10 @@ class TestGrdmMapping():
         storage_data = ["value2"]
         schema_link_list = {}
         expected_schema = {
-            "sc1" :[
+            "sc1": [
                 {
-                    "sc2" : "value1",
-                    "sc3" : "value2"
+                    "sc2": "value1",
+                    "sc3": "value2"
                 }
             ]
         }
@@ -1332,9 +1329,9 @@ class TestGrdmMapping():
         storage_data = []
         schema_link_list = {}
         expected_schema = {
-            "sc1" :{
-                "sc2" : []
-                }
+            "sc1": {
+                "sc2": []
+            }
         }
 
         target_class = GrdmMapping()
@@ -1350,9 +1347,9 @@ class TestGrdmMapping():
         storage_data = []
         schema_link_list = {}
         expected_schema = {
-            "sc1" :{
-                "sc2" : None
-                }
+            "sc1": {
+                "sc2": None
+            }
         }
 
         target_class = GrdmMapping()
@@ -1363,26 +1360,26 @@ class TestGrdmMapping():
     def test__add_property_4(self):
         """（正常系テスト）既にデータが存在しているリストにデータを加える場合のテストケースです。"""
         new_schema = {
-            "sc1" : {
-                    "sc2" : [
-                        "value1",
-                        "value2"
-                    ]
-                }
+            "sc1": {
+                "sc2": [
+                    "value1",
+                    "value2"
+                ]
+            }
         }
         schema_property = "sc1.sc2[]"
         type = "string"
         storage_data = ["value3", "value4"]
         schema_link_list = {}
         expected_schema = {
-            "sc1" :{
-                    "sc2" : [
-                        "value1",
-                        "value2",
-                        "value3",
-                        "value4"
-                    ]
-                }
+            "sc1": {
+                "sc2": [
+                    "value1",
+                    "value2",
+                    "value3",
+                    "value4"
+                ]
+            }
         }
 
         target_class = GrdmMapping()
@@ -1408,7 +1405,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"マッピング定義に誤りがあります({schema_property})"
 
-    def test__add_property6(self):
+    def test__add_property_6(self):
         """（異常系テスト）既にlist構造をもつキーに対してdictとしてアクセスしようとした場合のテストケースです。"""
         new_schema = {
             "sc1": [
@@ -1436,7 +1433,7 @@ class TestGrdmMapping():
         storage_data = ["value1"]
         schema_link_list = {}
 
-        mocker.patch("dg_mm.models.grdm.GrdmMapping._convert_data_type", side_effect = MappingDefinitionError)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping._convert_data_type", side_effect=MappingDefinitionError)
 
         with pytest.raises(MappingDefinitionError) as e:
             target_class = GrdmMapping()
@@ -1446,55 +1443,55 @@ class TestGrdmMapping():
 
     def test__convert_data_type_1(self):
         """（正常系テスト）bool型のデータをstring型に変換する場合のテストケースです。"""
-        data =[True, False]
+        data = [True, False]
         type = "string"
 
         expected_data = ["True", "False"]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_2(self):
         """（正常系テスト）bool型のデータをbool型に変換する場合のテストケースです。"""
-        data =[True]
+        data = [True]
         type = "boolean"
 
         expected_data = [True]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_3(self):
         """（正常系テスト）string型のデータをbool型に変換する場合のテストケースです。"""
-        data =["True", "false", "TRUE"]
+        data = ["True", "false", "TRUE"]
         type = "boolean"
 
         expected_data = [True, False, True]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_4(self):
         """（正常系テスト）小数点を含む数値のstring型データをfloat型に変換する場合のテストコードです。"""
-        data =["1.156"]
+        data = ["1.156"]
         type = "number"
 
         expected_data = [1.156]
 
         target_class = GrdmMapping()
-        converted_data =target_class._convert_data_type(data, type)
+        converted_data = target_class._convert_data_type(data, type)
 
         assert converted_data == expected_data
 
     def test__convert_data_type_5(self):
         """（異常系テスト）データがbool型に変換できないint型の場合のテストケースです。"""
-        data =[10]
+        data = [10]
         type = "boolean"
 
         with pytest.raises(MetadataTypeError):
@@ -1503,7 +1500,7 @@ class TestGrdmMapping():
 
     def test__convert_data_type_6(self):
         """（異常系テスト）データがbool型に変換できないstring型の場合のテストケースです。"""
-        data =["Any"]
+        data = ["Any"]
         type = "boolean"
 
         with pytest.raises(MetadataTypeError):
@@ -1512,9 +1509,638 @@ class TestGrdmMapping():
 
     def test__convert_data_type_7(self):
         """（異常系テスト）スキーマのデータの型が定義されていない場合のテストケースです。"""
-        data =["text"]
+        data = ["text"]
         type = None
 
         with pytest.raises(MappingDefinitionError):
             target_class = GrdmMapping()
             target_class._convert_data_type(data, type)
+
+
+class TestGrdmAccess():
+    def test_check_authentication_success_1(self, mocker):
+        """すべてのチェックOKの時に認証成功となる"""
+
+        # モック化
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid', return_value=True)
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid', return_value=True)
+
+        # テスト実行
+        target_class = GrdmAccess()
+        valid_token = "valid_token"
+        valid_project_id = "valid_project_id"
+
+        actual = target_class.check_authentication(valid_token, valid_project_id)
+
+        # 結果の確認
+        assert actual == True
+        assert target_class._is_authenticated == True
+        assert target_class._token == valid_token
+        assert target_class._project_id == valid_project_id
+
+    def test_check_authentication_failure_1(self, mocker):
+        """トークンの認証に失敗"""
+
+        # モック化
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid', return_value=False)
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid', return_value=True)
+
+        # テスト実行
+        target_class = GrdmAccess()
+        invalid_token = "invalid_token"
+        valid_project_id = "valid_project_id"
+
+        actual = target_class.check_authentication(invalid_token, valid_project_id)
+
+        # 結果の確認
+        assert actual == False
+        assert target_class._is_authenticated == False
+
+    def test_check_authentication_failure_2(self, mocker):
+        """プロジェクトの認証に失敗"""
+
+        # モック化
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_token_valid', return_value=True)
+        mocker.patch('dg_mm.models.grdm.GrdmAccess._check_project_id_valid', return_value=False)
+
+        # テスト実行
+        target_class = GrdmAccess()
+        valid_token = "valid_token"
+        invalid_project_id = "invalid_project_id"
+
+        actual = target_class.check_authentication(valid_token, invalid_project_id)
+
+        # 結果の確認
+        assert actual == False
+        assert target_class._is_authenticated == False
+
+    def test__check_token_valid_success_1(self, mocker):
+        """チェックOKの時に認証成功となる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_profile_1.json')
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+
+        actual = target_class._check_token_valid()
+
+        # 結果の確認
+        assert actual == True
+
+    def test__check_token_valid_failure_1(self, mocker):
+        """トークンが存在しない"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(401))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "invalid_token"
+
+        with pytest.raises(InvalidTokenError, match="認証に失敗しました"):
+            target_class._check_token_valid()
+
+    def test__check_token_valid_failure_2(self, mocker):
+        """トークンのアクセス権がない"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_profile_2.json')
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "invalid_token"
+
+        with pytest.raises(AccessDeniedError, match="トークンのアクセス権が不足しています"):
+            target_class._check_token_valid()
+
+    def test__check_token_valid_failure_3(self, mocker):
+        """APIのレスポンスが返らず、タイムアウトする"""
+
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            target_class._check_token_valid()
+
+    def test__check_token_valid_failure_4(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "invalid_token"
+
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            target_class._check_token_valid()
+
+    def test__check_token_valid_failure_5(self, mocker):
+        """予期せぬエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(429))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "invalid_token"
+
+        with pytest.raises(requests.HTTPError):
+            target_class._check_token_valid()
+
+    def test__check_project_id_valid_success_1(self, mocker):
+        """チェックOKの時に認証成功となる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_node_1.json')
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "valid_project_id"
+
+        actual = target_class._check_project_id_valid()
+
+        # 結果の確認
+        assert actual == True
+
+    def test__check_project_id_valid_failure_1(self, mocker):
+        """プロジェクトが存在しない"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(404))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "invalid_project_id"
+
+        with pytest.raises(InvalidIdError, match="プロジェクトが存在しません"):
+            target_class._check_project_id_valid()
+
+    def test__check_project_id_valid_failure_2(self, mocker):
+        """トークンを発行したユーザーにプロジェクトのアクセス権がない"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(403))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "invalid_project_id"
+
+        with pytest.raises(AccessDeniedError, match="プロジェクトへのアクセス権がありません"):
+            target_class._check_project_id_valid()
+
+    def test__check_project_id_valid_failure_3(self, mocker):
+        """APIのレスポンスが返らず、タイムアウトする"""
+
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "valid_project_id"
+
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            target_class._check_project_id_valid()
+
+    def test__check_project_id_valid_failure_4(self, mocker):
+        """プロジェクトが削除されている"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(410))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "invalid_project_id"
+
+        with pytest.raises(InvalidIdError, match="プロジェクトが削除されています"):
+            target_class._check_project_id_valid()
+
+    def test__check_project_id_valid_failure_5(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "invalid_project_id"
+
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            target_class._check_project_id_valid()
+
+    def test__check_project_id_valid_failure_6(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(429))
+
+        # テスト実行
+        target_class = GrdmAccess()
+        target_class._token = "valid_token"
+        target_class._project_id = "invalid_project_id"
+
+        with pytest.raises(requests.HTTPError):
+            target_class._check_project_id_valid()
+
+    def test_get_project_metadata_success_1(self, mocker):
+        """プロジェクトメタデータが登録されている場合にメタデータが取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_1.json')  # プロジェクトメタデータが1件登録されている場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_project_metadata()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]) == 1
+
+    def test_get_project_metadata_success_2(self, mocker):
+        """プロジェクトメタデータが複数登録されている場合にメタデータが取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_2.json')  # プロジェクトメタデータが2件登録されている場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_project_metadata()
+
+        # 結果の確認
+        assert len(actual["data"]) == 1
+        assert actual["data"][0] == api_res["data"][0]
+
+    def test_get_project_metadata_success_3(self, mocker):
+        """プロジェクトメタデータが登録されていない場合にエラーにならない"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_3.json')  # プロジェクトメタデータが登録されていない場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_project_metadata()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]) == 0
+
+    def test_get_project_metadata_success_4(self, mocker):
+        """プロジェクトメタデータのIDを指定して、プロジェクトメタデータが取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_1.json')  # 指定したIDのプロジェクトメタデータが存在する場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_project_metadata(project_metadata_id="valid")
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]) == 1
+
+    def test_get_project_metadata_failure_1(self, mocker):
+        """指定したプロジェクトメタデータIDが存在しない"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_3.json')  # 指定したIDのプロジェクトメタデータが存在しない場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(MetadataNotFoundError, match="指定したIDのプロジェクトメタデータが存在しません"):
+            instance.get_project_metadata(project_metadata_id="invalid")
+
+    def test_get_project_metadata_failure_2(self, mocker):
+        """別のプロジェクトが持つプロジェクトメタデータIDを指定"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_registrations_4.json')  # 別のプロジェクトのメタデータIDを指定した場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(MetadataNotFoundError, match="指定したIDのプロジェクトメタデータが存在しません"):
+            instance.get_project_metadata(project_metadata_id="invalid")
+
+    def test_get_project_metadata_failure_3(self):
+        """認証前に関数実行"""
+
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_project_metadata()
+
+    def test_get_project_metadata_failure_4(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            instance.get_project_metadata()
+
+    def test_get_project_metadata_failure_5(self, mocker):
+        """APIのレスポンスが返らず、タイムアウトする"""
+
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            instance.get_project_metadata()
+
+    def test_get_project_metadata_failure_6(self, mocker):
+        """予期せぬエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(429))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(requests.HTTPError):
+            instance.get_project_metadata()
+
+    def test_get_file_metadata_success_1(self, mocker):
+        """ファイルメタデータが登録されている場合にメタデータが取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_file_metadata_1.json')  # ファイルメタデータが1件登録されている場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_file_metadata()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]["attributes"]["files"]) == 1
+
+    def test_get_file_metadata_success_2(self, mocker):
+        """ファイルメタデータが複数登録されている場合にメタデータが取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_file_metadata_2.json')  # ファイルメタデータが2件登録されている場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_file_metadata()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]["attributes"]["files"]) == 2
+
+    def test_get_file_metadata_success_3(self, mocker):
+        """ファイルメタデータが登録されていない場合にエラーにならない"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_file_metadata_3.json')  # ファイルメタデータが登録されていない場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_file_metadata()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]["attributes"]["files"]) == 0
+
+    def test_get_file_metadata_success_4(self, mocker):
+        """GRDM上でメタデータのアドオンが無効の場合でもエラーにならない"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(400))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_file_metadata()
+
+        # 結果の確認
+        assert actual == {}
+
+    def test_get_file_metadata_failure_1(self):
+        """認証前に関数実行"""
+
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_file_metadata()
+
+    def test_get_file_metadata_failure_2(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            instance.get_file_metadata()
+
+    def test_get_file_metadata_failure_3(self, mocker):
+        """APIのレスポンスが返らず、タイムアウトする"""
+
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            instance.get_file_metadata()
+
+    def test_get_file_metadata_failure_4(self, mocker):
+        """予期せぬエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(429))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(requests.HTTPError):
+            instance.get_file_metadata()
+
+    def test_get_project_info_success_1(self, mocker):
+        """プロジェクト情報が取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_file_metadata_3.json')  # プロジェクト情報の正常なレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_project_info()
+
+        # 結果の確認
+        assert actual == api_res
+
+    def test_get_project_info_failure_1(self):
+        """認証前に関数実行"""
+
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_project_info()
+
+    def test_get_project_info_failure_2(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            instance.get_project_info()
+
+    def test_get_project_info_failure_3(self, mocker):
+        """APIのレスポンスが返らず、タイムアウトする"""
+
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            instance.get_project_info()
+
+    def test_get_project_info_failure_4(self, mocker):
+        """予期せぬエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(429))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(requests.HTTPError):
+            instance.get_project_info()
+
+    def test_get_member_info_success_1(self, mocker):
+        """メンバー情報が取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_contributors_1.json')  # メンバー情報が１件登録されている場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_member_info()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]) == 1
+
+    def test_get_member_info_success_2(self, mocker):
+        """複数メンバーが登録されているプロジェクトでメンバー情報が取得できる"""
+
+        # モック化
+        api_res = read_json('tests/models/data/grdm_api_contributors_2.json')  # メンバー情報が2件登録されている場合のレスポンス
+        mocker.patch('requests.get', return_value=create_mock_response(200, api_res))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_member_info()
+
+        # 結果の確認
+        assert actual == api_res
+        assert len(actual["data"]) == 2
+
+    def test_get_member_info_success_3(self, mocker):
+        """メンバー数がAPIで1回に取得できる数より多い場合でも全件取得できる"""
+
+        # モック化
+        api_res1 = read_json('tests/models/data/grdm_api_contributors_3.json')  # メンバー情報が11件登録されている場合の1回目のレスポンス
+        api_res2 = read_json('tests/models/data/grdm_api_contributors_4.json')  # メンバー情報が11件登録されている場合の2回目のレスポンス
+        res1 = create_mock_response(200, api_res1)
+        res2 = create_mock_response(200, api_res2)
+        mock_obj = mocker.patch('requests.get', side_effect=[res1, res2])
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        actual = instance.get_member_info()
+
+        # 結果の確認
+        assert len(actual["data"]) == 11
+        assert mock_obj.call_count == 2
+
+    def test_get_member_info_failure_1(self):
+        """認証前に関数実行"""
+
+        # テスト実行
+        target_class = GrdmAccess()
+
+        with pytest.raises(UnauthorizedError, match="認証されていません"):
+            target_class.get_member_info()
+
+    def test_get_member_info_failure_2(self, mocker):
+        """APIエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(500))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIサーバーでエラーが発生しました"):
+            instance.get_member_info()
+
+    def test_get_member_info_failure_3(self, mocker):
+        """APIのレスポンスが返らず、タイムアウトする"""
+
+        # モック化
+        mocker.patch('requests.get', side_effect=requests.exceptions.Timeout)
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(APIError, match="APIリクエストがタイムアウトしました"):
+            instance.get_member_info()
+
+    def test_get_member_info_failure_4(self, mocker):
+        """予期せぬエラーが発生する"""
+
+        # モック化
+        mocker.patch('requests.get', return_value=create_mock_response(429))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        with pytest.raises(requests.HTTPError):
+            instance.get_member_info()
+
+    def test_get_member_info_failure_5(self, mocker):
+        """無限ループ回避処理の確認"""
+
+        # モック化
+        api_res1 = read_json('tests/models/data/grdm_api_contributors_3.json')  # メンバー情報が11件登録されている場合の1回目のレスポンス
+        mock_obj = mocker.patch('requests.get', return_value=create_mock_response(200, api_res1))
+
+        # テスト実行
+        instance = create_authorized_grdm_access()
+        max_requests = instance._max_requests
+        with pytest.raises(APIError, match="リクエスト回数が上限を超えました"):
+            instance.get_member_info()
+
+        # 結果の確認
+        assert mock_obj.call_count == max_requests

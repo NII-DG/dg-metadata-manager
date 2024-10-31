@@ -1,0 +1,15 @@
+{
+    "data": {
+        "id": "aaaaa",
+        "type": "metadata-node-project",
+        "attributes": {
+            "editable": true,
+            "features": {
+                "exporting": true,
+                "dataset_importing": true
+            },
+            "files": [],
+            "repositories": []
+        }
+    }
+}

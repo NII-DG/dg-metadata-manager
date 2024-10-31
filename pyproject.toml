@@ -28,3 +28,8 @@ pythonpath = "."
 testpaths = [
     "tests",
 ]
+
+[tool.coverage.report]
+omit = [
+    "dg_mm/__main__.py"
+]
