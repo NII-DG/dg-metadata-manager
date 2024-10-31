@@ -38,9 +38,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install pytest-mock
+          pip install pytest-cov
           pip install requests
+          pip install .
 
       # テスト実施
       - name: Run pytest
+        # 環境変数の設定
+        env:
+          GRDM_TOKEN: ${{secrets.GRDM_TOKEN}}
+          GRDM_PROJECT_ID: ${{secrets.GRDM_PROJECT_ID}}
+          GRDM_PROJECT_METADATA_ID: ${{secrets.GRDM_PROJECT_METADATA_ID}}
+          GRDM_ACCESS_DENIED_TOKEN: ${{secrets.GRDM_ACCESS_DENIED_TOKEN}}
+          GRDM_ACCESS_DENIED_PROJECT_ID: ${{secrets.GRDM_ACCESS_DENIED_PROJECT_ID}}
         run: |
-          pytest -sv ./tests
+          pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html
+
+      # カバレッジ計測ファイル(HTML)のアップロード
+      - name: Upload coverage file
+        if: ${{ matrix.python-version==3.11 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: htmlcov
+          path: htmlcov
