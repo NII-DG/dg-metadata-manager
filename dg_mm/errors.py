@@ -2,21 +2,21 @@
 
 
 class MetadatamanagerError(Exception):
-    """MetadataManagerのエラー"""
+    """MetadataManagerのエラークラスです。"""
     pass
 
 
-class NotFoundMappingDefinitionError(MetadatamanagerError):
-    """マッピング定義ファイルが見つからないエラーのクラスです。"""
+class MappingDefinitionNotFoundError(MetadatamanagerError):
+    """マッピング定義ファイルが見つからない場合のエラークラスです。"""
     pass
 
 
-class MetadataTypeError(MetadatamanagerError):
-    """データの型が間違っているエラーのクラスです。"""
+class DataTypeError(MetadatamanagerError):
+    """データの型が間違っている場合のエラークラスです。"""
     pass
 
 
-class NotFoundKeyError(MetadatamanagerError):
+class KeyNotFoundError(MetadatamanagerError):
     """キーが見つからない場合のエラークラスです。"""
     pass
 
@@ -27,40 +27,45 @@ class MappingDefinitionError(MetadatamanagerError):
 
 
 class DataFormatError(MetadatamanagerError):
-    """データの形式に問題がある場合のエラーです。"""
+    """データの形式に問題がある場合のエラークラスです。"""
     pass
 
 
 class APIError(MetadatamanagerError):
-    """APIのエラー"""
+    """APIのエラークラスです。"""
     pass
 
 
 class UnauthorizedError(MetadatamanagerError):
-    """未認証のエラー"""
+    """未認証の場合のエラークラスです。"""
     pass
 
 
 class AccessDeniedError(MetadatamanagerError):
-    """アクセス権限がない場合のエラー"""
+    """アクセス権限がない場合のエラークラスです。"""
     pass
 
 
-class InvalidTokenError(MetadatamanagerError):
-    """トークン不正の場合のエラー"""
-    pass
-
-
-class InvalidIdError(MetadatamanagerError):
-    """ID不正の場合のエラー"""
+class InvalidSchemaError(MetadatamanagerError):
+    """スキーマ不正の場合のエラークラスです。"""
     pass
 
 
 class InvalidStorageError(MetadatamanagerError):
-    """対応していないストレージを指定した場合のエラー"""
+    """ストレージ不正の場合のエラークラスです。"""
+    pass
+
+
+class InvalidTokenError(MetadatamanagerError):
+    """トークン不正の場合のエラークラスです。"""
+    pass
+
+
+class InvalidIdError(MetadatamanagerError):
+    """ID不正の場合のエラークラスです。"""
     pass
 
 
 class MetadataNotFoundError(MetadatamanagerError):
-    """メタデータが見つからなかった場合のエラー"""
+    """メタデータが見つからなかった場合のエラークラスです。"""
     pass

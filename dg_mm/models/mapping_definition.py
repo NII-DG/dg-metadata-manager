@@ -5,8 +5,8 @@ from logging import getLogger
 
 from dg_mm.errors import (
     MappingDefinitionError,
-    NotFoundMappingDefinitionError,
-    NotFoundKeyError
+    MappingDefinitionNotFoundError,
+    KeyNotFoundError
 )
 from dg_mm.util import PackageFileReader
 
@@ -31,12 +31,12 @@ class DefinitionManager():
             dict: マッピング定義
 
         Raises:
-            NotFoundKeyError: 引数として渡されたプロパティが存在しない。
+            KeyNotFoundError: 引数として渡されたプロパティが存在しない。
 
         """
         try:
             if isinstance(filter_properties, list) and not filter_properties:
-                raise NotFoundKeyError("絞り込むプロパティが指定されていません。")
+                raise KeyNotFoundError("絞り込むプロパティが指定されていません。")
 
             mapping_definition = cls._read_mapping_definition(schema, storage)
             # 要素が存在する場合のみ絞り込みを行います。
@@ -58,14 +58,14 @@ class DefinitionManager():
                         error_keys.append(key)
 
                 if error_keys:
-                    raise NotFoundKeyError(f"指定したプロパティ: {error_keys} が存在しません")
+                    raise KeyNotFoundError(f"指定したプロパティ: {error_keys} が存在しません")
 
                 return filtered_definition
 
             else:
                 return mapping_definition
 
-        except (NotFoundMappingDefinitionError, NotFoundKeyError, MappingDefinitionError) as e:
+        except (MappingDefinitionNotFoundError, KeyNotFoundError, MappingDefinitionError) as e:
             logger.error(e)
             raise
 
@@ -81,7 +81,7 @@ class DefinitionManager():
             dict: マッピング定義
 
         Raises:
-            NotFoundMappingDefinitionError: l指定したマッピング定義ファイルが存在しない
+            MappingDefinitionNotFoundError: マッピング定義ファイルが存在しない
 
         """
         dir_path = 'data/mapping'
@@ -90,7 +90,7 @@ class DefinitionManager():
         file_path = os.path.join(dir_path, file_name)
 
         if not PackageFileReader.is_file(file_path):
-            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません。")
+            raise MappingDefinitionNotFoundError("マッピング定義ファイルが見つかりません。")
 
         try:
             mapping_definition = PackageFileReader.read_json(file_path, encoding='utf-8')

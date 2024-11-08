@@ -6,15 +6,17 @@ import requests
 
 from dg_mm.models.mapping_definition import DefinitionManager
 from dg_mm.errors import (
+    MappingDefinitionNotFoundError,
     UnauthorizedError,
     AccessDeniedError,
     APIError,
+    InvalidSchemaError,
     InvalidTokenError,
     InvalidIdError,
     DataFormatError,
     MappingDefinitionError,
-    MetadataTypeError,
-    NotFoundKeyError,
+    DataTypeError,
+    KeyNotFoundError,
     MetadataNotFoundError
 )
 from dg_mm.util import PackageFileReader
@@ -47,8 +49,8 @@ class GrdmMapping():
 
         Raises:
             MappingDefinitionError: マッピング定義の内容に誤りがある
-            NotFoundKeyError: 一致するキーが見つからない
-            MetadataTypeError: 型の変換ができない
+            KeyNotFoundError: 一致するキーが見つからない
+            DataTypeError: 型の変換ができない
             DataFormatError: データの形式に誤りがある
 
         """
@@ -57,8 +59,11 @@ class GrdmMapping():
         grdm_access.check_authentication(token, project_id)
 
         # マッピング定義の取得
-        storage = "GRDM"
-        self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(schema, storage, filter_properties)
+        try:
+            storage = "GRDM"
+            self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(schema, storage, filter_properties)
+        except MappingDefinitionNotFoundError as e:
+            raise InvalidSchemaError("対応していないスキーマが指定されました") from e
 
         try:
             # メタデータ取得先の特定
@@ -104,26 +109,26 @@ class GrdmMapping():
                     new_schema = self._extract_and_insert_metadata(
                         new_schema, source_data[source], schema_property, components, schema_link_list, storage_keys)
 
-                except NotFoundKeyError as e:
+                except KeyNotFoundError as e:
                     if isinstance(e.args[0], list):
                         error_keys.extend(e.args[0])
                     else:
                         error_keys.append(str(e))
                     continue
 
-                except MetadataTypeError as e:
+                except DataTypeError as e:
                     error_types.append(str(e))
 
             if error_keys and error_types:
                 raise DataFormatError(
                     f"キーの不一致が確認されました。:{error_keys}, データの変換に失敗しました。：{error_types}")
             elif error_keys:
-                raise NotFoundKeyError(f"キーの不一致が確認されました。:{error_keys}")
+                raise KeyNotFoundError(f"キーの不一致が確認されました。:{error_keys}")
             elif error_types:
-                raise MetadataTypeError(f"データの変換に失敗しました。：{error_types}")
+                raise DataTypeError(f"データの変換に失敗しました。：{error_types}")
 
-        except (MetadataTypeError, MappingDefinitionError,
-                NotFoundKeyError, DataFormatError) as e:
+        except (DataTypeError, MappingDefinitionError,
+                KeyNotFoundError, DataFormatError) as e:
             logger.error(e)
             raise
 
@@ -203,12 +208,12 @@ class GrdmMapping():
                 _handle_list内で再帰的な処理が実行された場合はNoneが返ってくるので、このメソッドの戻り値もNoneとなります。
 
         Raises:
-            NotFoundKeyError: データの構造を示すキーが存在しない
+            KeyNotFoundError: データの構造を示すキーが存在しない
             MappingDefinitionError: マッピング定義に誤りがある
 
         """
         if key not in source:
-            raise NotFoundKeyError(
+            raise KeyNotFoundError(
                 f"{key}と一致するストレージのキーが見つかりませんでした。({schema_property})")
         # 値がリスト構造の場合
         if isinstance(source[key], list):
@@ -256,7 +261,7 @@ class GrdmMapping():
 
         Raises:
             MappingDefinitionError: マッピング定義に誤りがある
-            NotFoundKeyError: データの構造を示すキーが存在しない
+            KeyNotFoundError: データの構造を示すキーが存在しない
 
         """
         link_list_info = components.get("list")
@@ -278,11 +283,11 @@ class GrdmMapping():
                     new_schema = self._extract_and_insert_metadata(
                         new_schema, item, schema_property, components, schema_link_list, storage_keys)
 
-                except NotFoundKeyError as e:
+                except KeyNotFoundError as e:
                     error_keys.append(str(e))
                     continue
             if error_keys:
-                raise NotFoundKeyError(error_keys)
+                raise KeyNotFoundError(error_keys)
 
             return
 
@@ -390,7 +395,7 @@ class GrdmMapping():
 
         Raises:
             MappingDefinitionError: マッピング定義に誤りがある
-            MetadataTypeError: データの型が変換できない
+            DataTypeError: データの型が変換できない
 
         """
         keys = schema_property.split('.')
@@ -450,7 +455,7 @@ class GrdmMapping():
                     f"type:{type}は有効な型ではありません({schema_property})") from e
 
             except Exception as e:
-                raise MetadataTypeError(
+                raise DataTypeError(
                     f"型変換エラー：{storage_data}を{type}に変換できません({schema_property})") from e
 
         # スキーマの定義がリストの場合
@@ -476,7 +481,7 @@ class GrdmMapping():
             list: 型を変換したデータ
 
         Raises:
-            MetadataTypeError: データの型が変換できない
+            DataTypeError: データの型が変換できない
             MappingDefinitionError: マッピング定義に誤りがある
 
         """
@@ -496,9 +501,9 @@ class GrdmMapping():
                         value = False
                         converted_data.append(False)
                     else:
-                        raise MetadataTypeError()
+                        raise DataTypeError()
                 else:
-                    raise MetadataTypeError()
+                    raise DataTypeError()
 
             elif type == "number":
                 converted_data.append(

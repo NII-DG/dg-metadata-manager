@@ -17,8 +17,8 @@ from dg_mm.errors import (
     UnauthorizedError,
     DataFormatError,
     MappingDefinitionError,
-    MetadataTypeError,
-    NotFoundKeyError,
+    DataTypeError,
+    KeyNotFoundError,
 )
 
 
@@ -170,9 +170,9 @@ class TestGrdmMapping():
         filter_properties = []
 
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
-        mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", side_effect=NotFoundKeyError("絞り込むプロパティが指定されていません。"))
+        mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", side_effect=KeyNotFoundError("絞り込むプロパティが指定されていません。"))
 
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "invalid_token", "invalid_project_id", filter_properties)
 
@@ -184,9 +184,9 @@ class TestGrdmMapping():
         filter_properties = ["non_existent_property"]
 
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
-        mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", side_effect=NotFoundKeyError("指定したプロパティが存在しません。"))
+        mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", side_effect=KeyNotFoundError("指定したプロパティが存在しません。"))
 
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "invalid_token", "invalid_project_id", filter_properties)
 
@@ -263,9 +263,9 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[NotFoundKeyError(error_keys), NotFoundKeyError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[KeyNotFoundError(error_keys), KeyNotFoundError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
 
-        with pytest.raises(NotFoundKeyError)as e:
+        with pytest.raises(KeyNotFoundError)as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
@@ -284,9 +284,9 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[MetadataTypeError("型変換エラー：storage_dataをbooleanに変換できません(sc1[].sc2[])"), MetadataTypeError("型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[DataTypeError("型変換エラー：storage_dataをbooleanに変換できません(sc1[].sc2[])"), DataTypeError("型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)")])
 
-        with pytest.raises(MetadataTypeError)as e:
+        with pytest.raises(DataTypeError)as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
@@ -306,7 +306,7 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[NotFoundKeyError(error_keys), MetadataTypeError("型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[KeyNotFoundError(error_keys), DataTypeError("型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)")])
 
         with pytest.raises(DataFormatError)as e:
             target_class = GrdmMapping()
@@ -851,7 +851,7 @@ class TestGrdmMapping():
         }
 
         target_class = GrdmMapping()
-        with pytest.raises(MetadataTypeError) as e:
+        with pytest.raises(DataTypeError) as e:
             new_schema = target_class._extract_and_insert_metadata(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys)
 
@@ -884,7 +884,7 @@ class TestGrdmMapping():
         }
 
         target_class = GrdmMapping()
-        with pytest.raises(MetadataTypeError) as e:
+        with pytest.raises(DataTypeError) as e:
             new_schema = target_class._extract_and_insert_metadata(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys)
 
@@ -1037,7 +1037,7 @@ class TestGrdmMapping():
         key = "st0"
 
         target_class = GrdmMapping()
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             new_schema = target_class._check_and_handle_key_structure(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
@@ -1087,7 +1087,7 @@ class TestGrdmMapping():
         sources = read_test_source_data["test__handle_list_1"]
 
         target_class = GrdmMapping()
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             target_class._handle_list(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
 
@@ -1114,7 +1114,7 @@ class TestGrdmMapping():
 
         sources = read_test_source_data["test__handle_list_2"]
 
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             target_class = GrdmMapping()
             target_class._handle_list(
                 new_schema, sources, schema_property, components, schema_link_list, storage_keys, index, key)
@@ -1494,7 +1494,7 @@ class TestGrdmMapping():
         data = [10]
         type = "boolean"
 
-        with pytest.raises(MetadataTypeError):
+        with pytest.raises(DataTypeError):
             target_class = GrdmMapping()
             target_class._convert_data_type(data, type)
 
@@ -1503,7 +1503,7 @@ class TestGrdmMapping():
         data = ["Any"]
         type = "boolean"
 
-        with pytest.raises(MetadataTypeError):
+        with pytest.raises(DataTypeError):
             target_class = GrdmMapping()
             target_class._convert_data_type(data, type)
 
