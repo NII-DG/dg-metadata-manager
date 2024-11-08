@@ -21,6 +21,7 @@ metadatamanager = "dg_mm:__main__.main"
 dev = [
     "pytest",
     "pytest-mock",
+    "pytest-cov",
 ]
 
 [tool.pytest.ini_options]

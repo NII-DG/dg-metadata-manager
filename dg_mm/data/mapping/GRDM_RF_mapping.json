@@ -589,7 +589,7 @@
             "data.attributes.files.items": 0
         }
     },
-    "projectItem[]description": {
+    "projectItem[].description": {
         "type": "string",
         "source": "file_metadata",
         "value": "data.attributes.files.items.data.grdm-file:data-description-ja.value",
