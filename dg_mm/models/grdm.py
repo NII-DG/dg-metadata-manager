@@ -100,7 +100,7 @@ class GrdmMapping():
             schema_link_list = {}
             source = components.get("source")
             storage_path = components.get("value")
-            if storage_path is None:
+            if storage_path is None or not source_data[source]:
                 continue
 
             storage_keys = storage_path.split(".")
@@ -126,10 +126,11 @@ class GrdmMapping():
         elif error_types:
             raise DataTypeError(f"データの変換に失敗しました。：{error_types}")
 
-        # マッピング先がないプロパティをスキーマに追加
+        # マッピングできなかったプロパティをスキーマに追加
         for schema_property, components in self._mapping_definition.items():
             storage_path = components.get("value")
-            if storage_path is not None:
+            source = components.get("source")
+            if storage_path is not None and source_data[source]:
                 continue
             try:
                 new_schema = self._add_unmap_property(new_schema, schema_property.split("."))
