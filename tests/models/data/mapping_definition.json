@@ -42,11 +42,11 @@
         }
     },
     "test_mapping_metadata_3": {
-        "sc1[].sc2": {
+        "sc1.sc2": {
             "type": "string",
             "value": null
         },
-        "sc1[].sc3[].sc4[]": {
+        "sc3[].sc4": {
             "type": "string",
             "value": null
         }

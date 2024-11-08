@@ -28,7 +28,7 @@ class MetadataManager():
             token (str, optional): ストレージの認証情報。 デフォルトはNone。
             id (str, optional): ストレージを特定する情報。 デフォルトはNone.
             filter_properties (list, optional): スキーマの一部のキー。デフォルトはNone.
-            project_metadata_id (str): プロジェクトメタデータのid。デフォルトはNone.
+            project_metadata_id (str, optional): プロジェクトメタデータのid。デフォルトはNone.
 
         Returns:
             dict: マッピングしたメタデータ

@@ -68,12 +68,9 @@ class TestGrdmMapping():
         # 戻り値が期待通りかの検証
         assert metadata == expected_new_schema
         # モック化した各関数が想定された数だけ呼び出されているかの検証
-        assert mock__add_property.call_count == 1
+        assert mock__add_property.call_count == 0
         assert mock__extract_and_insert_metadata.call_count == 2
         # 各プロパティが正確に処理されているかの検証
-        schema_property_arg = mock__add_property.call_args_list[0][0][1]
-        assert schema_property_arg == "sc1[].sc3[].sc4[]"
-
         schema_property_arg = mock__extract_and_insert_metadata.call_args_list[0][0][2]
         assert schema_property_arg == "sc1[].sc2[]"
 
@@ -115,7 +112,6 @@ class TestGrdmMapping():
     def test_mapping_metadata_3(self, mocker, read_test_mapping_definition, read_test_expected_schema):
         """(正常系テスト 6)filter_propertiesで指定されたすべてのプロパティに対応するメタデータが存在しない場合のテストケースです。"""
 
-        filter_properties = ["sc1.sc2", "sc1.sc3.sc4[]"]
         metadata_sources = []
 
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_3"]
@@ -127,17 +123,11 @@ class TestGrdmMapping():
         mock__add_property = mocker.patch("dg_mm.models.grdm.GrdmMapping._add_property", return_value=expected_new_schema)
 
         target_class = GrdmMapping()
-        metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id", filter_properties)
+        metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
         assert metadata == expected_new_schema
 
-        assert mock__add_property.call_count == 2
-
-        schema_property_arg = mock__add_property.call_args_list[0][0][1]
-        assert schema_property_arg == "sc1[].sc2"
-
-        schema_property_arg = mock__add_property.call_args_list[1][0][1]
-        assert schema_property_arg == "sc1[].sc3[].sc4[]"
+        assert mock__add_property.call_count == 0
 
     def test_mapping_metadata_4(self, mocker):
         """(異常系テスト 7)GRDMの認証に失敗した場合のテストケースです。"""

@@ -29,16 +29,10 @@
         ]
     },
     "test_mapping_metadata_3": {
-        "sc1": [
-            {
-                "sc2": null,
-                "sc3": [
-                    {
-                        "sc4": []
-                    }
-                ]
-            }
-        ]
+        "sc1": {
+            "sc2": null
+        },
+        "sc3": []
     },
     "test__extract_and_insert_metadata_9": {
         "sc1": [

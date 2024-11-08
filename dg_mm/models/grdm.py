@@ -48,6 +48,7 @@ class GrdmMapping():
             dict: スキーマにデータを挿入したもの
 
         Raises:
+            InvalidSchemaError: スキーマ不正
             MappingDefinitionError: マッピング定義の内容に誤りがある
             KeyNotFoundError: 一致するキーが見つからない
             DataTypeError: 型の変換ができない
@@ -96,12 +97,7 @@ class GrdmMapping():
                 schema_link_list = {}
                 source = components.get("source")
                 storage_path = components.get("value")
-                # 対応するデータがGRDMに存在しない場合
                 if storage_path is None:
-                    type = components.get("type")
-                    storage_data = []
-                    new_schema = self._add_property(
-                        new_schema, schema_property, type, storage_data, schema_link_list)
                     continue
 
                 storage_keys = storage_path.split(".")
@@ -126,6 +122,16 @@ class GrdmMapping():
                 raise KeyNotFoundError(f"キーの不一致が確認されました。:{error_keys}")
             elif error_types:
                 raise DataTypeError(f"データの変換に失敗しました。：{error_types}")
+
+            # マッピング先がないプロパティをスキーマに追加
+            for schema_property, components in self._mapping_definition.items():
+                storage_path = components.get("value")
+                if storage_path is not None:
+                    continue
+                try:
+                    new_schema = self._add_unmap_property(new_schema, schema_property.split("."))
+                except MappingDefinitionError:
+                    raise MappingDefinitionError(f"データ構造が定義と異なっています({schema_property})")
 
         except (DataTypeError, MappingDefinitionError,
                 KeyNotFoundError, DataFormatError) as e:
@@ -378,7 +384,7 @@ class GrdmMapping():
 
     def _add_property(
             self, new_schema: dict, schema_property: str,
-            type: Optional[str], storage_data: list, schema_link_list: dict) -> dict:
+            type: str, storage_data: list, schema_link_list: dict) -> dict:
         """取得したデータと対応したプロパティをスキーマに追加するメソッドです。
 
         スキーマに引数で指定したプロパティを追加し、そこに取得したデータを挿入します。
@@ -386,7 +392,7 @@ class GrdmMapping():
         Args:
             new_schema(dict): プロパティを追加するスキーマ
             schema_property(str): 追加するスキーマのプロパティまでのキーをつなげた固有の文字列
-            type(Optional[str]): スキーマの要求するデータの型
+            type(str): スキーマの要求するデータの型
             storage_data (list): ストレージから取得したデータ
             schema_link_list (dict): ストレージのリストと対応したスキーマのリストの情報。リストの項目数を保持している。
 
@@ -401,6 +407,7 @@ class GrdmMapping():
         keys = schema_property.split('.')
         current_schema = new_schema
 
+        # 追加するプロパティの1つ上までの階層構造をスキーマに追加する
         for index, key in enumerate(keys[:-1]):
             # リストの場合
             if "[]" in key:
@@ -441,10 +448,8 @@ class GrdmMapping():
                         f"マッピング定義に誤りがあります({schema_property})")
                 current_schema = current_schema[key]
 
-        # 最終キーの処理
-        final_key = keys[-1]
+        # データが存在する場合、型変換を行う
         converted_storage_data = []
-        # データが存在する場合、型チェックを行う
         if storage_data:
             try:
                 converted_storage_data = self._convert_data_type(
@@ -458,24 +463,26 @@ class GrdmMapping():
                 raise DataTypeError(
                     f"型変換エラー：{storage_data}を{type}に変換できません({schema_property})") from e
 
-        # スキーマの定義がリストの場合
+        # 最終キーと値をスキーマに追加
+        final_key = keys[-1]
         if "[]" in final_key:
+            # スキーマの定義がリストの場合
             base_key = final_key.replace("[]", "")
             current_schema.setdefault(base_key, [])
             if converted_storage_data:
                 current_schema[base_key].extend(converted_storage_data)
-        # スキーマの定義がリストではない場合
         else:
+            # スキーマの定義がリストではない場合
             current_schema[final_key] = converted_storage_data[0] if converted_storage_data else None
 
         return new_schema
 
-    def _convert_data_type(self, data: list, type: Optional[str]) -> list:
+    def _convert_data_type(self, data: list, type: str) -> list:
         """データの型を要求された型へと変換するメソッドです。
 
         Args:
             data (list): 型の変換を行うデータ
-            type (Optional[str]): 変換する型の情報
+            type (str): 変換する型の情報
 
         Returns:
             list: 型を変換したデータ
@@ -514,9 +521,62 @@ class GrdmMapping():
 
         return converted_data
 
+    def _add_unmap_property(self, current_schema: dict, schema_properties: list) -> dict:
+        """マッピング先がないプロパティをスキーマに追加するメソッドです。
+
+        Args:
+            current_schema(dict): プロパティを追加するスキーマ
+            schema_property(str): current_schemaから一番下の階層までのプロパティ一覧
+
+        return:
+            dict: プロパティを追加したスキーマ
+
+        Raises:
+            MappingDefinitionError: マッピング定義に誤りがある
+        """
+        current_property = schema_properties[0]
+        # プロパティの値がリストの場合
+        if "[]" in current_property:
+            base_key = current_property.replace("[]", "")
+
+            # キーが存在しない場合
+            if base_key not in current_schema:
+                # リスト内に含める項目が存在しないので、これより下の階層は作成しない
+                current_schema[base_key] = []
+
+            # キーが存在する場合
+            else:
+                # リストとして定義されているのにスキーマにリスト以外が存在する場合
+                if not isinstance(current_schema[base_key], list):
+                    raise MappingDefinitionError()
+
+                for list_item in current_schema[base_key]:
+                    self._add_unmap_property(list_item, schema_properties[1:])
+        else:
+            # 一番下の階層の場合
+            if len(schema_properties) == 1:
+                # 一番下の階層なのにすでにスキーマにプロパティが存在する場合
+                if current_property in current_schema:
+                    raise MappingDefinitionError()
+
+                current_schema[current_property] = None
+            else:
+                # 一番下の階層なのにすでにスキーマにプロパティが存在する場合
+
+                # キーが存在しない場合はオブジェクト作成
+                if current_property not in current_schema:
+                    current_schema[current_property] = {}
+
+                # オブジェクトとして定義されているのにスキーマにオブジェクト以外が定義されている場合
+                elif not isinstance(current_schema[current_property], dict):
+                    raise MappingDefinitionError()
+
+                self._add_unmap_property(current_schema[current_property], schema_properties[1:])
+
+        return current_schema
+
 
 class GrdmAccess():
-
     """GRDMへのアクセスを行うメソッドをまとめたクラスです。
 
     Attributes:
