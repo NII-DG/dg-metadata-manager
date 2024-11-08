@@ -62,81 +62,80 @@ class GrdmMapping():
         # マッピング定義の取得
         try:
             storage = "GRDM"
-            self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(schema, storage, filter_properties)
+            self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(
+                schema, storage, filter_properties)
         except MappingDefinitionNotFoundError as e:
             raise InvalidSchemaError("対応していないスキーマが指定されました") from e
 
-        try:
-            # メタデータ取得先の特定
-            metadata_sources = self._find_metadata_sources()
+        # メタデータ取得先の特定
+        metadata_sources = self._find_metadata_sources()
 
-            # 各データ取得先からデータを取得
-            source_data = {}
-            if metadata_sources:
-                source_mapping = {
-                    "project_info": grdm_access.get_project_info,
-                    "member_info": grdm_access.get_member_info,
-                    "project_metadata": grdm_access.get_project_metadata,
-                    "file_metadata": grdm_access.get_file_metadata,
-                }
-                error_sources = []
-                for source in metadata_sources:
-                    if source in source_mapping:
-                        source_data[source] = source_mapping[source](project_metadata_id=project_metadata_id)
-                    else:
-                        error_sources.append(source)
-                if error_sources:
-                    raise MappingDefinitionError(
-                        f"メタデータ取得先:{error_sources}が存在しません")
+        # 各データ取得先からデータを取得
+        source_data = {}
+        if metadata_sources:
+            source_mapping = {
+                "project_info": grdm_access.get_project_info,
+                "member_info": grdm_access.get_member_info,
+                "project_metadata": grdm_access.get_project_metadata,
+                "file_metadata": grdm_access.get_file_metadata,
+            }
+            error_sources = []
+            for source in metadata_sources:
+                if source in source_mapping:
+                    param = {
+                        "project_metadata_id": project_metadata_id
+                    }
+                    source_data[source] = source_mapping[source](**param)
+                else:
+                    logger.error(f"メタデータ取得先が存在しない({source})")
+                    error_sources.append(source)
+            if error_sources:
+                raise MappingDefinitionError(f"メタデータ取得先:{error_sources}が存在しません")
 
-            # 各プロパティに対するマッピング処理
-            new_schema = {}
-            error_keys = []
-            error_types = []
-            for schema_property, components in self._mapping_definition.items():
-                schema_link_list = {}
-                source = components.get("source")
-                storage_path = components.get("value")
-                if storage_path is None:
-                    continue
+        # 各プロパティに対するマッピング処理
+        new_schema = {}
+        error_keys = []
+        error_types = []
+        for schema_property, components in self._mapping_definition.items():
+            schema_link_list = {}
+            source = components.get("source")
+            storage_path = components.get("value")
+            if storage_path is None:
+                continue
 
-                storage_keys = storage_path.split(".")
-                try:
-                    new_schema = self._extract_and_insert_metadata(
-                        new_schema, source_data[source], schema_property, components, schema_link_list, storage_keys)
+            storage_keys = storage_path.split(".")
+            try:
+                new_schema = self._extract_and_insert_metadata(
+                    new_schema, source_data[source], schema_property, components, schema_link_list, storage_keys)
 
-                except KeyNotFoundError as e:
-                    if isinstance(e.args[0], list):
-                        error_keys.extend(e.args[0])
-                    else:
-                        error_keys.append(str(e))
-                    continue
+            except KeyNotFoundError as e:
+                if isinstance(e.args[0], list):
+                    error_keys.extend(e.args[0])
+                else:
+                    error_keys.append(str(e))
+                continue
 
-                except DataTypeError as e:
-                    error_types.append(str(e))
+            except DataTypeError as e:
+                error_types.append(str(e))
 
-            if error_keys and error_types:
-                raise DataFormatError(
-                    f"キーの不一致が確認されました。:{error_keys}, データの変換に失敗しました。：{error_types}")
-            elif error_keys:
-                raise KeyNotFoundError(f"キーの不一致が確認されました。:{error_keys}")
-            elif error_types:
-                raise DataTypeError(f"データの変換に失敗しました。：{error_types}")
+        if error_keys and error_types:
+            raise DataFormatError(
+                f"キーの不一致が確認されました。:{error_keys}, データの変換に失敗しました。：{error_types}")
+        elif error_keys:
+            raise KeyNotFoundError(f"キーの不一致が確認されました。:{error_keys}")
+        elif error_types:
+            raise DataTypeError(f"データの変換に失敗しました。：{error_types}")
 
-            # マッピング先がないプロパティをスキーマに追加
-            for schema_property, components in self._mapping_definition.items():
-                storage_path = components.get("value")
-                if storage_path is not None:
-                    continue
-                try:
-                    new_schema = self._add_unmap_property(new_schema, schema_property.split("."))
-                except MappingDefinitionError:
-                    raise MappingDefinitionError(f"データ構造が定義と異なっています({schema_property})")
-
-        except (DataTypeError, MappingDefinitionError,
-                KeyNotFoundError, DataFormatError) as e:
-            logger.error(e)
-            raise
+        # マッピング先がないプロパティをスキーマに追加
+        for schema_property, components in self._mapping_definition.items():
+            storage_path = components.get("value")
+            if storage_path is not None:
+                continue
+            try:
+                new_schema = self._add_unmap_property(new_schema, schema_property.split("."))
+            except MappingDefinitionError:
+                logger.error(f"スキーマのデータ構造がほかのプロパティと異なる({schema_property})")
+                raise MappingDefinitionError(f"データ構造が定義と異なっています({schema_property})")
 
         return new_schema
 
@@ -219,6 +218,7 @@ class GrdmMapping():
 
         """
         if key not in source:
+            logger.error(f"ストレージに対応するキーが存在しない({schema_property})")
             raise KeyNotFoundError(
                 f"{key}と一致するストレージのキーが見つかりませんでした。({schema_property})")
         # 値がリスト構造の場合
@@ -233,14 +233,14 @@ class GrdmMapping():
             current_key_index = index + len(complete_storage_keys) - len(storage_keys)
             link_list_info = link_list_info.get(".".join(complete_storage_keys[:current_key_index + 1])) if link_list_info else None
             if link_list_info:
-                raise MappingDefinitionError(
-                    f"オブジェクト：{'.'.join(complete_storage_keys[:current_key_index + 1])}がリストとして定義されています。({schema_property})")
+                current_key = '.'.join(complete_storage_keys[:current_key_index + 1])
+                logger.error(f"{current_key}がリストとして定義されている({schema_property})")
+                raise MappingDefinitionError(f"オブジェクト：{current_key}がリストとして定義されています。({schema_property})")
             else:
                 source = source[key]
 
         else:
-            raise MappingDefinitionError(
-                f"データ構造が定義と異なっています。({schema_property})")
+            raise MappingDefinitionError(f"データ構造が定義と異なっています。({schema_property})")
 
         return source
 
@@ -456,10 +456,12 @@ class GrdmMapping():
                     storage_data, type)
 
             except MappingDefinitionError as e:
+                logger.error(f"マッピング定義の型不正({type})({schema_property})")
                 raise MappingDefinitionError(
                     f"type:{type}は有効な型ではありません({schema_property})") from e
 
             except Exception as e:
+                logger.error(f"{storage_data}を{type}に変換できない({schema_property})")
                 raise DataTypeError(
                     f"型変換エラー：{storage_data}を{type}に変換できません({schema_property})") from e
 

@@ -34,6 +34,7 @@ class MetadataManager():
             dict: マッピングしたメタデータ
         """
         if storage not in MetadataManager._ACTIVE_STORAGES:
+            logger.error(f"ストレージが存在しない({storage})")
             raise InvalidStorageError("対応していないストレージが指定されました")
         mapping_cls: BaseMapping = globals()[MetadataManager._ACTIVE_STORAGES[storage]]
         instance = mapping_cls()
