@@ -65,7 +65,7 @@ class GrdmMapping():
             self._mapping_definition = DefinitionManager.get_and_filter_mapping_definition(
                 schema, storage, filter_properties)
         except MappingDefinitionNotFoundError as e:
-            raise InvalidSchemaError("対応していないスキーマが指定されました") from e
+            raise InvalidSchemaError("対応していないスキーマが指定されました。") from e
 
         # メタデータ取得先の特定
         metadata_sources = self._find_metadata_sources()
@@ -90,7 +90,7 @@ class GrdmMapping():
                     logger.error(f"メタデータ取得先が存在しない({source})")
                     error_sources.append(source)
             if error_sources:
-                raise MappingDefinitionError(f"メタデータ取得先:{error_sources}が存在しません")
+                raise MappingDefinitionError(f"メタデータ取得先:{error_sources}が存在しません。")
 
         # 各プロパティに対するマッピング処理
         new_schema = {}
@@ -109,11 +109,7 @@ class GrdmMapping():
                     new_schema, source_data[source], schema_property, components, schema_link_list, storage_keys)
 
             except KeyNotFoundError as e:
-                if isinstance(e.args[0], list):
-                    error_keys.extend(e.args[0])
-                else:
-                    error_keys.append(str(e))
-                continue
+                error_keys.extend(e.args[0])
 
             except DataTypeError as e:
                 error_types.append(str(e))
@@ -136,7 +132,7 @@ class GrdmMapping():
                 new_schema = self._add_unmap_property(new_schema, schema_property.split("."))
             except MappingDefinitionError:
                 logger.error(f"スキーマのデータ構造がほかのプロパティと異なる({schema_property})")
-                raise MappingDefinitionError(f"データ構造が定義と異なっています({schema_property})")
+                raise MappingDefinitionError(f"データ構造が定義と異なっています。({schema_property})")
 
         return new_schema
 
@@ -291,9 +287,15 @@ class GrdmMapping():
                         new_schema, item, schema_property, components, schema_link_list, storage_keys)
 
                 except KeyNotFoundError as e:
-                    error_keys.append(str(e))
+                    if isinstance(e.args[0], str):
+                        error_keys.append(e.args[0])
+                    else:
+                        error_keys.extend(e.args[0])
                     continue
             if error_keys:
+                if len(error_keys) > 1:
+                    # 重複削除(dictのkeyが順番を保持するので、それを利用して削除後の順番を保持する)
+                    error_keys = list(dict.fromkeys(error_keys))
                 raise KeyNotFoundError(error_keys)
 
             return
@@ -305,7 +307,7 @@ class GrdmMapping():
                 return source
             else:
                 raise MappingDefinitionError(
-                    f"指定されたインデックス:{link_list_info}が存在しません({schema_property})")
+                    f"listで指定されたインデックス:{link_list_info}が存在しません。({schema_property})")
 
     def _get_and_insert_final_key_value(
             self, new_schema: dict, source: dict, schema_property: str,
@@ -358,7 +360,7 @@ class GrdmMapping():
                             new_schema, schema_property, type, storage_data, schema_link_list)
                     else:
                         raise MappingDefinitionError(
-                            f"指定されたインデックスが存在しません({schema_property})")
+                            f"listで指定されたインデックスが存在しません。({schema_property})")
 
                     return new_schema
 
@@ -372,7 +374,7 @@ class GrdmMapping():
         # キーの数が不足している場合
         elif isinstance(source[final_key], dict):
             raise MappingDefinitionError(
-                f"データ構造が定義と異なっています({schema_property})")
+                f"データ構造が定義と異なっています。({schema_property})")
 
         # 値がリストではない場合
         else:
@@ -421,7 +423,7 @@ class GrdmMapping():
                 # リスト構造以外が存在する場合
                 elif not isinstance(current_schema[base_key], list):
                     raise MappingDefinitionError(
-                        f"マッピング定義に誤りがあります({schema_property})")
+                        f"マッピング定義に誤りがあります。({schema_property})")
 
                 base_keys = [key.replace("[]", "") for key in keys[:index + 1]]
                 link_list_info = schema_link_list.get(".".join(base_keys))
@@ -439,14 +441,14 @@ class GrdmMapping():
                         current_schema = current_schema[base_key][0]
                     else:
                         raise MappingDefinitionError(
-                            f"マッピング定義に誤りがあります({schema_property})")
+                            f"マッピング定義に誤りがあります。({schema_property})")
             # dictの場合
             else:
                 if key not in current_schema:
                     current_schema[key] = {}
                 elif not isinstance(current_schema[key], dict):
                     raise MappingDefinitionError(
-                        f"マッピング定義に誤りがあります({schema_property})")
+                        f"マッピング定義に誤りがあります。({schema_property})")
                 current_schema = current_schema[key]
 
         # データが存在する場合、型変換を行う
@@ -459,12 +461,12 @@ class GrdmMapping():
             except MappingDefinitionError as e:
                 logger.error(f"マッピング定義の型不正({type})({schema_property})")
                 raise MappingDefinitionError(
-                    f"type:{type}は有効な型ではありません({schema_property})") from e
+                    f"type:{type}は有効な型ではありません。({schema_property})") from e
 
             except Exception as e:
                 logger.error(f"{storage_data}を{type}に変換できない({schema_property})")
                 raise DataTypeError(
-                    f"型変換エラー：{storage_data}を{type}に変換できません({schema_property})") from e
+                    f"型変換エラー：{storage_data}を{type}に変換できません。({schema_property})") from e
 
         # 最終キーと値をスキーマに追加
         final_key = keys[-1]
@@ -641,7 +643,7 @@ class GrdmAccess():
         except requests.exceptions.HTTPError as e:
             if response.status_code == 401:
                 logger.error(f"InvalidTokenError: {e}")
-                raise InvalidTokenError("認証に失敗しました")
+                raise InvalidTokenError("認証に失敗しました。")
             elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
                 raise APIError("APIサーバーでエラーが発生しました")
@@ -657,7 +659,7 @@ class GrdmAccess():
                 return True
             else:
                 logger.error(f"token permisson error: {scope}")
-                raise AccessDeniedError("トークンのアクセス権が不足しています")
+                raise AccessDeniedError("トークンのアクセス権が不足しています。")
 
     def _check_project_id_valid(self) -> bool:
         """プロジェクトIDの存在とアクセス権の有無を確認するメソッドです。
@@ -680,22 +682,22 @@ class GrdmAccess():
         except requests.exceptions.HTTPError as e:
             if response.status_code == 403:
                 logger.error(f"Project permisson error: {e}")
-                raise AccessDeniedError("プロジェクトへのアクセス権がありません")
+                raise AccessDeniedError("プロジェクトへのアクセス権がありません。")
             elif response.status_code == 404:
                 logger.error(f"Project not found: {e}")
-                raise InvalidIdError("プロジェクトが存在しません")
+                raise InvalidIdError("プロジェクトが存在しません。")
             elif response.status_code == 410:
                 logger.error(f"Project deleted: {e}")
-                raise InvalidIdError("プロジェクトが削除されています")
+                raise InvalidIdError("プロジェクトが削除されています。")
             elif response.status_code >= 500:
                 logger.error(f"API server error: {e}")
-                raise APIError("APIサーバーでエラーが発生しました")
+                raise APIError("APIサーバーでエラーが発生しました。")
             else:
                 logger.error(f"Unexpected HTTP error: {e}")
                 raise
         except requests.exceptions.Timeout as e:
             logger.error(f"API request timeout: {e}")
-            raise APIError("APIリクエストがタイムアウトしました")
+            raise APIError("APIリクエストがタイムアウトしました。")
         return bool(result)
 
     def get_project_metadata(self, project_metadata_id: str = None, **kwargs: Any) -> dict:
@@ -749,9 +751,9 @@ class GrdmAccess():
                     if data["data"][0]["relationships"]["registered_from"]["data"]["id"] == self._project_id:
                         return data
                     else:
-                        raise MetadataNotFoundError("指定したIDのプロジェクトメタデータが存在しません")
+                        raise MetadataNotFoundError("指定したIDのプロジェクトメタデータが存在しません。")
                 else:
-                    raise MetadataNotFoundError("指定したIDのプロジェクトメタデータが存在しません")
+                    raise MetadataNotFoundError("指定したIDのプロジェクトメタデータが存在しません。")
 
         except requests.exceptions.HTTPError as e:
             if response.status_code >= 500:

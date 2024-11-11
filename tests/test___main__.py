@@ -230,7 +230,7 @@ def test_main_failure_3():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: マッピング定義ファイルが見つかりません。" in err
+    assert "エラーが発生しました: 対応していないスキーマが指定されました。" in err
 
 
 def test_main_failure_4():
@@ -266,7 +266,7 @@ def test_main_failure_6():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: 対応していないストレージが指定されました" in err
+    assert "エラーが発生しました: 対応していないストレージが指定されました。" in err
 
 
 def test_main_failure_7():
@@ -278,7 +278,7 @@ def test_main_failure_7():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: 認証に失敗しました" in err
+    assert "エラーが発生しました: 認証に失敗しました。" in err
 
 
 def test_main_failure_8():
@@ -302,7 +302,7 @@ def test_main_failure_9():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: 認証に失敗しました" in err
+    assert "エラーが発生しました: 認証に失敗しました。" in err
 
 
 def test_main_failure_10():
@@ -314,7 +314,7 @@ def test_main_failure_10():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: トークンのアクセス権が不足しています" in err
+    assert "エラーが発生しました: トークンのアクセス権が不足しています。" in err
 
 
 def test_main_failure_11():
@@ -326,7 +326,7 @@ def test_main_failure_11():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: プロジェクトが存在しません" in err
+    assert "エラーが発生しました: プロジェクトが存在しません。" in err
 
 
 def test_main_failure_12():
@@ -350,7 +350,7 @@ def test_main_failure_13():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: プロジェクトが存在しません" in err
+    assert "エラーが発生しました: プロジェクトが存在しません。" in err
 
 
 def test_main_failure_14():
@@ -362,7 +362,7 @@ def test_main_failure_14():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: プロジェクトへのアクセス権がありません" in err
+    assert "エラーが発生しました: プロジェクトへのアクセス権がありません。" in err
 
 
 def test_main_failure_15():
@@ -388,7 +388,7 @@ def test_main_failure_16():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません" in err
+    assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません。" in err
 
 
 def test_main_failure_17():
@@ -427,7 +427,7 @@ def test_main_failure_19(create_dummy_filter_files):
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: フィルタファイルのフォーマットに誤りがあります" in err
+    assert "エラーが発生しました: フィルタファイルのフォーマットに誤りがあります。" in err
 
 
 def test_main_failure_20(create_dummy_filter_files):
@@ -440,7 +440,7 @@ def test_main_failure_20(create_dummy_filter_files):
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません" in err
+    assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません。" in err
 
 
 def test_main_failure_22():
@@ -518,4 +518,4 @@ def test_main_failure_27():
 
     assert rt != 0
     assert out == ""
-    assert "エラーが発生しました: 指定したIDのプロジェクトメタデータが存在しません" in err
+    assert "エラーが発生しました: 指定したIDのプロジェクトメタデータが存在しません。" in err

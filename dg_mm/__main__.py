@@ -15,9 +15,9 @@ def main():
 
     parser_get = subparser.add_parser('get', help='GRDMを含む研究データ管理サービスからメタデータを収集し、指定したスキーマの形式で取得する。')
     parser_get.add_argument('--schema', required=True,
-                            help='スキーマの名称を指定する')
+                            help='スキーマの名称を指定する。')
     parser_get.add_argument('--storage', required=True,
-                            help='ストレージの名称を指定する')
+                            help='ストレージの名称を指定する。')
     parser_get.add_argument('--token',
                             help='ストレージ認証に使用するトークンを指定する。storageにGRDMを指定した場合に必要です。')
     parser_get.add_argument('--id',
@@ -67,7 +67,7 @@ def get_metadata(args: argparse.Namespace):
             with open(args.filter_file, 'r') as f:
                 args.filter = json.load(f)
         except json.JSONDecodeError:
-            raise DataFormatError("フィルタファイルのフォーマットに誤りがあります")
+            raise DataFormatError("フィルタファイルのフォーマットに誤りがあります。")
 
     if args.file is not None:
         # 存在しないフォルダの場合エラーにする

@@ -60,7 +60,7 @@ class DefinitionManager():
                     error_keys.append(key)
 
             if error_keys:
-                raise KeyNotFoundError(f"指定したプロパティ: {error_keys} が存在しません")
+                raise KeyNotFoundError(f"指定したプロパティ: {error_keys} が存在しません。")
 
             return filtered_definition
 

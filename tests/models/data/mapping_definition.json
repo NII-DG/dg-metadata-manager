@@ -130,7 +130,7 @@
             "value": "data.embeds.users.data.attributes.employment.institution_ja",
             "list": {
                 "data": "researcher",
-                "employment": "affiliation"
+                "data.embeds.users.data.attributes.employment": "researcher.affiliation"
             }
         }
     },
@@ -149,7 +149,7 @@
             "value": "data.embeds.users.data.attributes.employment.institution_ja",
             "list": {
                 "data": "researcher",
-                "employment": "affiliation"
+                "data.embeds.users.data.attributes.employment": "researcher.affiliation"
             }
         }
     },
@@ -164,7 +164,7 @@
             "value": "data.embeds.users.data.attributes.employment.institution_ja",
             "list": {
                 "data": "researcher",
-                "employment": "affiliation"
+                "data.embeds.users.data.attributes.employment": "researcher.affiliation"
             }
         }
     }

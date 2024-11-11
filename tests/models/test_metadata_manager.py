@@ -82,7 +82,7 @@ class TestMetadataManager:
             "id": "valid"
         }
         target_class = MetadataManager()
-        with pytest.raises(InvalidStorageError, match="対応していないストレージが指定されました"):
+        with pytest.raises(InvalidStorageError, match="対応していないストレージが指定されました。"):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_3(self, mocker):

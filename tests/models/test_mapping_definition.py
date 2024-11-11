@@ -143,7 +143,7 @@ class TestDefinitionManager():
             target_class = DefinitionManager()
             target_class.get_and_filter_mapping_definition(schema, storage, filter_properties)
 
-        assert str(e.value) == "指定したプロパティ: ['non_existent_property'] が存在しません"
+        assert str(e.value) == "指定したプロパティ: ['non_existent_property'] が存在しません。"
 
     def test_get_and_filter_mapping_definition_8(self, mocker, read_test_mapping_definition):
         """(異常系テスト)filter_propertiesが空のリストとして渡された場合のテストケースです。"""
@@ -183,7 +183,6 @@ class TestDefinitionManager():
         schema = "invalid_schema"
         storage = "invalid_storage"
 
-        # NotFoundMappingDefinitionErrorをキャッチするようにしてテストを実行
         with pytest.raises(MappingDefinitionNotFoundError)as e:
             target_class = DefinitionManager()
             target_class._read_mapping_definition(schema, storage)
