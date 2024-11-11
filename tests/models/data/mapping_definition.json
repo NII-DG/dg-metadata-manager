@@ -15,10 +15,10 @@
         "sc1[].sc3[].sc5": {
             "type": "string",
             "source": "member_info",
-            "value": "st1.st2.st3.st4",
+            "value": "st1.st4.st5",
             "list": {
                 "st1": "sc1",
-                "st3": "sc3"
+                "st4": "sc3"
             }
         }
     },
@@ -31,13 +31,17 @@
                 "st1": "sc1"
             }
         },
+        "sc1[].sc3[].sc4[]": {
+            "type": "string",
+            "value": null
+        },
         "sc1[].sc3[].sc5": {
             "type": "string",
             "source": "member_info",
-            "value": "st1.st2.st3.st4",
+            "value": "st1.st4.st5",
             "list": {
                 "st1": "sc1",
-                "st3": "sc3"
+                "st4": "sc3"
             }
         }
     },

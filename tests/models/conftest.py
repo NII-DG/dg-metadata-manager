@@ -91,3 +91,27 @@ def read_test_source_data():
         data = json.load(f)
 
     return data
+
+
+@pytest.fixture
+def read_test_new_schema():
+    """テスト時に用いる取得したデータを挿入するスキーマを読み込みます。"""
+
+    path = 'tests/models/data/new_schema.json'
+
+    with open(path, mode='r') as f:
+        data = json.load(f)
+
+    return data
+
+
+@pytest.fixture
+def read_test_components():
+    """テスト時に用いる取得したデータを挿入するスキーマを読み込みます。"""
+
+    path = 'tests/models/data/components.json'
+
+    with open(path, mode='r') as f:
+        data = json.load(f)
+
+    return data

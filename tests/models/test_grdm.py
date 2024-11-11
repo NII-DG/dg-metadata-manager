@@ -49,9 +49,8 @@ class TestGrdmMapping():
         """(正常系テスト 4)スキーマ全体のメタデータを取得する場合のテストケースです。"""
 
         metadata_sources = ["member_info"]
-        source_data = {}
+        source_data = {"key": "value1"}
 
-        # テスト用の仮のマッピング定義と期待されるスキーマを取得する。
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_1"]
         expected_new_schema = read_test_expected_schema["test_mapping_metadata_1"]
 
@@ -60,33 +59,37 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__add_property = mocker.patch("dg_mm.models.grdm.GrdmMapping._add_property", return_value=expected_new_schema)
         mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", return_value=expected_new_schema)
+        mock__add_unmap_property = mocker.patch("dg_mm.models.grdm.GrdmMapping._add_unmap_property", return_value=expected_new_schema)
 
+        # テスト実施
         target_class = GrdmMapping()
         metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
+
         # 戻り値が期待通りかの検証
         assert metadata == expected_new_schema
         # モック化した各関数が想定された数だけ呼び出されているかの検証
-        assert mock__add_property.call_count == 0
         assert mock__extract_and_insert_metadata.call_count == 2
+        assert mock__add_unmap_property.call_count == 1
         # 各プロパティが正確に処理されているかの検証
         schema_property_arg = mock__extract_and_insert_metadata.call_args_list[0][0][2]
         assert schema_property_arg == "sc1[].sc2[]"
-
         schema_property_arg = mock__extract_and_insert_metadata.call_args_list[1][0][2]
         assert schema_property_arg == "sc1[].sc3[].sc5"
+        schema_properties_arg = mock__add_unmap_property.call_args_list[0][0][1]
+        assert schema_properties_arg == ["sc1[]", "sc3[]", "sc4[]"]
 
     def test_mapping_metadata_2(self, mocker, read_test_mapping_definition, read_test_expected_schema):
         """(正常系テスト 5)filter_propertiesで指定されたプロパティのメタデータのみを取得する場合のテストケースです。"""
 
         filter_properties = ["sc1.sc2", "sc1.sc3.sc5"]
         metadata_sources = ["project_info", "member_info"]
-        source_data = {}
+        source_data = {"key": "value1"}
 
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_2"]
         expected_new_schema = read_test_expected_schema["test_mapping_metadata_2"]
 
+        # _mapping_metadata内で呼び出す各関数をモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
@@ -94,18 +97,19 @@ class TestGrdmMapping():
         mock_get_member_info = mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
         mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", return_value=expected_new_schema)
 
+        # テスト実施
         target_class = GrdmMapping()
         metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id", filter_properties)
 
+        # 戻り値が期待通りかの検証
         assert metadata == expected_new_schema
-
+        # モック化した各関数が想定された数だけ呼び出されているかの検証
         assert mock_get_project_info.call_count == 1
         assert mock_get_member_info.call_count == 1
         assert mock__extract_and_insert_metadata.call_count == 2
-
+        # 各プロパティが正確に処理されているかの検証
         schema_property_arg = mock__extract_and_insert_metadata.call_args_list[0][0][2]
         assert schema_property_arg == "sc1[].sc2[]"
-
         schema_property_arg = mock__extract_and_insert_metadata.call_args_list[1][0][2]
         assert schema_property_arg == "sc1[].sc3[].sc5"
 
@@ -117,16 +121,19 @@ class TestGrdmMapping():
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_3"]
         expected_new_schema = read_test_expected_schema["test_mapping_metadata_3"]
 
+        # _mapping_metadata内で呼び出す各関数をモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mock__add_property = mocker.patch("dg_mm.models.grdm.GrdmMapping._add_property", return_value=expected_new_schema)
 
+        # テスト実施
         target_class = GrdmMapping()
         metadata = target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
+        # 戻り値が期待通りかの検証
         assert metadata == expected_new_schema
-
+        # モック化した各関数が想定された数だけ呼び出されているかの検証
         assert mock__add_property.call_count == 0
 
     def test_mapping_metadata_4(self, mocker):
@@ -135,7 +142,6 @@ class TestGrdmMapping():
         # 認証を行う関数が呼ばれた際にエラーを返すようにモック化
         mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication", side_effect=AuthenticationError("認証に失敗しました。"))
 
-        # AuthenticationErrorをキャッチする形でテストを実行
         with pytest.raises(AuthenticationError) as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "invalid_token", "invalid_project_id")
@@ -202,7 +208,7 @@ class TestGrdmMapping():
         """(異常系テスト 12),マッピングに失敗した場合のエラーケースです。"""
 
         metadata_sources = ["member_info"]
-        source_data = {}
+        source_data = {"key": "value"}
 
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_1"]
 
@@ -244,8 +250,11 @@ class TestGrdmMapping():
         """(異常系テスト)一致するストレージのキーが存在しない場合のテストケースです。"""
 
         metadata_sources = ["member_info"]
-        source_data = {}
-        error_keys = ["sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])"]
+        source_data = {"key": "value"}
+        errors = [
+            "sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])",
+            "sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)",
+        ]
 
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_11"]
 
@@ -253,20 +262,24 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[KeyNotFoundError(error_keys), KeyNotFoundError("sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[KeyNotFoundError(errors[0]), KeyNotFoundError(errors[1])])
 
         with pytest.raises(KeyNotFoundError)as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
         assert mock__extract_and_insert_metadata.call_count == 2
-        assert str(e.value) == "キーの不一致が確認されました。:['sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])', 'sc3と一致するストレージのキーが見つかりませんでした。(sc1[].sc3.sc4)']"
+        assert str(e.value) == f"キーの不一致が確認されました。:['{errors[0]}', '{errors[1]}']"
 
     def test_mapping_metadata_12(self, mocker, read_test_mapping_definition):
         """(異常系テスト)データの型変換に失敗した場合のテストケースです。"""
 
         metadata_sources = ["member_info"]
-        source_data = {}
+        source_data = {"key": "value"}
+        errors = [
+            "型変換エラー：storage_dataをbooleanに変換できません(sc1[].sc2[])",
+            "型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)",
+        ]
 
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_11"]
 
@@ -274,21 +287,24 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[DataTypeError("型変換エラー：storage_dataをbooleanに変換できません(sc1[].sc2[])"), DataTypeError("型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[DataTypeError(errors[0]), DataTypeError(errors[1])])
 
         with pytest.raises(DataTypeError)as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
         assert mock__extract_and_insert_metadata.call_count == 2
-        assert str(e.value) == "データの変換に失敗しました。：['型変換エラー：storage_dataをbooleanに変換できません(sc1[].sc2[])', '型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)']"
+        assert str(e.value) == f"データの変換に失敗しました。：['{errors[0]}', '{errors[1]}']"
 
     def test_mapping_metadata_13(self, mocker, read_test_mapping_definition):
         """(異常系テスト)ストレージのキーが一致しないエラーとデータの型変換に失敗したエラーの両方が発生した場合のテストケースです。"""
 
         metadata_sources = ["member_info"]
-        source_data = {}
-        error_keys = ["sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])"]
+        source_data = {"key": "value"}
+        errors = [
+            "sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])",
+            "型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)",
+        ]
 
         test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_11"]
 
@@ -296,14 +312,14 @@ class TestGrdmMapping():
         mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
         mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
         mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
-        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[KeyNotFoundError(error_keys), DataTypeError("型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)")])
+        mock__extract_and_insert_metadata = mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", side_effect=[KeyNotFoundError(errors[0]), DataTypeError(errors[1])])
 
         with pytest.raises(DataFormatError)as e:
             target_class = GrdmMapping()
             target_class.mapping_metadata("リサーチフロー", "valid_token", "valid_project_id")
 
         assert mock__extract_and_insert_metadata.call_count == 2
-        assert str(e.value) == "キーの不一致が確認されました。:['sc1と一致するストレージのキーが見つかりませんでした。(sc1[].sc2[])'], データの変換に失敗しました。：['型変換エラー：storage_dataをnumberに変換できません(sc1[].sc3.sc4)']"
+        assert str(e.value) == f"キーの不一致が確認されました。:['{errors[0]}'], データの変換に失敗しました。：['{errors[1]}']"
 
     def test__find_metadata_sources_1(self, read_test_mapping_definition):
         """(正常系テスト 7)マッピング定義にある全取得先を取得する場合のテストケースです。"""
@@ -331,7 +347,7 @@ class TestGrdmMapping():
 
         assert not metadata_sources
 
-    def test__extract_and_insert_metadata_1(self):
+    def test__extract_and_insert_metadata_1(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 9)マッピングのテストケースNo.1のテストです。
 
         データが単一項目同士であり、型も同じ場合のテストケースです。
@@ -341,23 +357,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": "value1"
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": "value1"
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_1"]
+        components = read_test_components["test__extract_and_insert_metadata_1"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_1"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -365,7 +368,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_2(self):
+    def test__extract_and_insert_metadata_2(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 10)マッピングのテストケースNo.2のテストです。
 
         データがリスト同士であり、型も同じ場合のテストケースです。
@@ -375,29 +378,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": [
-                        "value1",
-                        "value2"
-                    ]
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": [
-                    "value1",
-                    "value2"
-                ]
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_2"]
+        components = read_test_components["test__extract_and_insert_metadata_2"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_2"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -405,7 +389,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_3(self):
+    def test__extract_and_insert_metadata_3(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 11)マッピングのテストケースNo.3のテストです。
 
         データが単一項目同士であり、型が異なる場合（変換可能）のテストケースです。
@@ -415,23 +399,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "number",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": "1"
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": 1
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_3"]
+        components = read_test_components["test__extract_and_insert_metadata_3"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_3"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -439,7 +410,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_4(self):
+    def test__extract_and_insert_metadata_4(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 12)マッピングのテストケースNo.4のテストです。
 
         データがリスト同士であり、型が異なる場合（変換可能）のテストケースです。
@@ -449,29 +420,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "number",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": [
-                        "1",
-                        "2"
-                    ]
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": [
-                    1,
-                    2
-                ]
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_4"]
+        components = read_test_components["test__extract_and_insert_metadata_4"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_4"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -479,7 +431,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_5(self):
+    def test__extract_and_insert_metadata_5(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 13)マッピングのテストケースNo.5のテストです。
 
         ストレージのデータが単一項目でスキーマがリストの場合（型は同じ）のテストケースです。
@@ -489,25 +441,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": "value1"
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": [
-                    "value1"
-                ]
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_5"]
+        components = read_test_components["test__extract_and_insert_metadata_5"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_5"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -515,7 +452,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_6(self):
+    def test__extract_and_insert_metadata_6(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 14)マッピングのテストケースNo.6のテストです。
 
         ストレージのデータが単一項目でスキーマがリストの場合（型は異なるが変換可能）のテストケースです。
@@ -525,25 +462,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "number",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": "1"
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": [
-                    1
-                ]
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_6"]
+        components = read_test_components["test__extract_and_insert_metadata_6"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_6"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -551,7 +473,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_7(self):
+    def test__extract_and_insert_metadata_7(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 15)マッピングのテストケースNo.7のテストです。
 
         ストレージのデータがリストでスキーマが単一項目の場合（型は同じ）のテストケースです。
@@ -561,26 +483,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": [
-                        "value1",
-                        "value2"
-                    ]
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": "value1"
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_7"]
+        components = read_test_components["test__extract_and_insert_metadata_7"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_7"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -588,7 +494,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_8(self):
+    def test__extract_and_insert_metadata_8(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 16)マッピングのテストケースNo.8のテストです。
 
         ストレージのデータが単一項目でスキーマがリストの場合（型は異なるが変換可能）のテストケースです。
@@ -598,26 +504,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "number",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": [
-                        "1",
-                        "2"
-                    ]
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": 1
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_8"]
+        components = read_test_components["test__extract_and_insert_metadata_8"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_8"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -625,7 +515,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_9(self, read_test_source_data, read_test_expected_schema):
+    def test__extract_and_insert_metadata_9(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 17)マッピングのテストケースNo.9のテストです。
 
         ストレージのデータ内部にリストが含まれており、スキーマに対応するプロパティが存在する場合のテストケースです。
@@ -635,16 +525,9 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1[].sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3",
-            "list": {
-                "st1.st2": "sc1"
-            }
-        }
 
         sources = read_test_source_data["test__extract_and_insert_metadata_9"]
+        components = read_test_components["test__extract_and_insert_metadata_9"]
         expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_9"]
 
         target_class = GrdmMapping()
@@ -653,7 +536,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_10(self):
+    def test__extract_and_insert_metadata_10(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 18)マッピングのテストケースNo.10のテストです。
 
         スキーマの内部にリストが存在するが、対応する項目がストレージに存在しない場合のテストケースです。
@@ -663,25 +546,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1[].sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": "value1"
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": [
-                {
-                    "sc2": "value1"
-                }
-            ]
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_10"]
+        components = read_test_components["test__extract_and_insert_metadata_10"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_10"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -689,7 +557,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_11(self, read_test_source_data):
+    def test__extract_and_insert_metadata_11(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 19)マッピングのテストケースNo.11のテストです。
 
         ストレージのデータ内部にリストが含まれているが、スキーマに対応するプロパティが存在しない場合のテストケースです。
@@ -699,21 +567,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3",
-            "list": {
-                "st1.st2": 0
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": "value1"
-            }
-        }
 
         sources = read_test_source_data["test__extract_and_insert_metadata_11"]
+        components = read_test_components["test__extract_and_insert_metadata_11"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_11"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -721,7 +578,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_12(self, read_test_source_data, read_test_expected_schema):
+    def test__extract_and_insert_metadata_12(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 20)マッピングのテストケースNo.12のテストです。
 
         ストレージのデータ内部にリストが複数含まれており、スキーマに対応するプロパティが存在するものとしないものが混在する場合のテストケースです。
@@ -731,17 +588,9 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3", "st4"]
         schema_property = "sc1[].sc2.sc3[].sc4"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3.st4",
-            "list": {
-                "st1": "sc1",
-                "st1.st2": 0
-            }
-        }
 
         sources = read_test_source_data["test__extract_and_insert_metadata_12"]
+        components = read_test_components["test__extract_and_insert_metadata_12"]
         expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_12"]
 
         target_class = GrdmMapping()
@@ -750,7 +599,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_13(self):
+    def test__extract_and_insert_metadata_13(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 23)マッピングのテストケースNo.15のテストです。
 
         ストレージのデータが値の設定されていない単一項目の場合のテストケースです。
@@ -760,30 +609,18 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3",
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": None
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": None
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_13"]
+        components = read_test_components["test__extract_and_insert_metadata_13"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_13"]
+
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
             new_schema, sources, schema_property, components, schema_link_list, storage_keys)
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_14(self):
+    def test__extract_and_insert_metadata_14(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """(正常系テスト 24)マッピングのテストケースNo.16のテストです。
 
         ストレージのデータが値の設定されていないリストの場合のテストケースです。
@@ -793,23 +630,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": []
-                }
-            }
-        }
-        expected_schema = {
-            "sc1": {
-                "sc2": []
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_14"]
+        components = read_test_components["test__extract_and_insert_metadata_14"]
+        expected_schema = read_test_expected_schema["test__extract_and_insert_metadata_14"]
 
         target_class = GrdmMapping()
         new_schema = target_class._extract_and_insert_metadata(
@@ -817,7 +641,7 @@ class TestGrdmMapping():
 
         assert new_schema == expected_schema
 
-    def test__extract_and_insert_metadata_15(self):
+    def test__extract_and_insert_metadata_15(self, read_test_source_data, read_test_components):
         """(異常系テスト 15)マッピングのテストケースNo.17のテストです。
 
         データが単一項目同士であるが、型が異なり変換が不可能な場合のテストケースです。
@@ -827,18 +651,9 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "number",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": "value1"
-                }
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_15"]
+        components = read_test_components["test__extract_and_insert_metadata_15"]
 
         target_class = GrdmMapping()
         with pytest.raises(DataTypeError) as e:
@@ -847,7 +662,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"型変換エラー：['value1']をnumberに変換できません({schema_property})"
 
-    def test__extract_and_insert_metadata_16(self):
+    def test__extract_and_insert_metadata_16(self, read_test_source_data, read_test_components):
         """(異常系テスト 16)マッピングのテストケースNo.18のテストです。
 
         データがリスト同士であるが、型が異なり変換が不可能な場合のテストケースです。
@@ -857,21 +672,9 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
         schema_property = "sc1.sc2[]"
-        components = {
-            "type": "number",
-            "source": "project_metadata",
-            "value": "st1.st2.st3"
-        }
-        sources = {
-            "st1": {
-                "st2": {
-                    "st3": [
-                        "value1",
-                        "value2"
-                    ]
-                }
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_16"]
+        components = read_test_components["test__extract_and_insert_metadata_16"]
 
         target_class = GrdmMapping()
         with pytest.raises(DataTypeError) as e:
@@ -880,35 +683,19 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"型変換エラー：['value1', 'value2']をnumberに変換できません({schema_property})"
 
-    def test__extract_and_insert_metadata_17(self):
+    def test__extract_and_insert_metadata_17(self, read_test_new_schema, read_test_source_data, read_test_components):
         """(異常系テスト 17)マッピングのテストケースNo.19のテストです。
 
         スキーマのプロパティごとにリストの定義が異なっている場合のテストケースです。
 
         """
-        new_schema = {
-            "sc1": [
-                {
-                    "sc2": "value1"
-                }
-            ]
-        }
         schema_link_list = {}
         storage_keys = ["st1", "st3"]
         schema_property = "sc1.sc3"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st3"
-        }
-        sources = {
-            "st1": [
-                {
-                    "st2": "value1",
-                    "st3": "value2"
-                }
-            ]
-        }
+
+        new_schema = read_test_new_schema["test__extract_and_insert_metadata_17"]
+        sources = read_test_source_data["test__extract_and_insert_metadata_17"]
+        components = read_test_components["test__extract_and_insert_metadata_17"]
 
         target_class = GrdmMapping()
         with pytest.raises(MappingDefinitionError) as e:
@@ -917,7 +704,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"リスト：st1の定義が不足しています。({schema_property})"
 
-    def test__extract_and_insert_metadata_18(self):
+    def test__extract_and_insert_metadata_18(self, read_test_source_data, read_test_components):
         """(異常系テスト 18)マッピングのテストケースNo.20のテストです。
 
         実際にはリストであるストレージの構造がマッピング定義ではオブジェクトと定義されていた場合のテストケースです。
@@ -927,18 +714,9 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2"
-        }
-        sources = {
-            "st1": [
-                {
-                    "st2": "value1"
-                }
-            ]
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_18"]
+        components = read_test_components["test__extract_and_insert_metadata_18"]
 
         target_class = GrdmMapping()
         with pytest.raises(MappingDefinitionError) as e:
@@ -947,7 +725,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"リスト：st1の定義が不足しています。({schema_property})"
 
-    def test__extract_and_insert_metadata_19(self):
+    def test__extract_and_insert_metadata_19(self, read_test_source_data, read_test_components):
         """(異常系テスト 19)マッピングのテストケースNo.21のテストです。
 
         実際にはオブジェクトであるストレージの構造がマッピング定義ではリストと定義されていた場合のテストケースです。
@@ -957,19 +735,9 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2"]
         schema_property = "sc1[].sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-            "list": {
-                "st1": "sc1"
-            }
-        }
-        sources = {
-            "st1": {
-                "st2": "value1"
-            }
-        }
+
+        sources = read_test_source_data["test__extract_and_insert_metadata_19"]
+        components = read_test_components["test__extract_and_insert_metadata_19"]
 
         target_class = GrdmMapping()
         with pytest.raises(MappingDefinitionError) as e:
@@ -978,7 +746,7 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"オブジェクト：st1がリストとして定義されています。({schema_property})"
 
-    def test__extract_and_insert_metadata_20(self, read_test_expected_schema, read_test_source_data):
+    def test__extract_and_insert_metadata_20(self, read_test_new_schema, read_test_source_data, read_test_components):
         """(異常系テスト 20)マッピングのテストケースNo.22のテストです。
 
         プロパティごとにリストの対応付けが異なっている場合のテストケースです。
@@ -987,18 +755,10 @@ class TestGrdmMapping():
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3", "st5"]
         schema_property = "sc1[].sc2.sc3[].sc5"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3.st5",
-            "list": {
-                "st1": "sc1",
-                "st1.st2": 0
-            }
-        }
 
-        new_schema = read_test_expected_schema["test__extract_and_insert_metadata_20"]
+        new_schema = read_test_new_schema["test__extract_and_insert_metadata_20"]
         sources = read_test_source_data["test__extract_and_insert_metadata_20"]
+        components = read_test_components["test__extract_and_insert_metadata_20"]
 
         target_class = GrdmMapping()
         with pytest.raises(MappingDefinitionError) as e:
@@ -1007,22 +767,15 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"マッピング定義に誤りがあります({schema_property})"
 
-    def test__check_and_handle_key_structure_1(self):
+    def test__check_and_handle_key_structure_1(self, read_test_source_data, read_test_components):
         """（異常系テスト）ストレージに一致するキーが存在しなかった場合のテストケースです。"""
+
         new_schema = {}
+        sources = read_test_source_data["test__check_and_handle_key_structure_1"]
+        schema_property = "sc1.sc2"
+        components = read_test_components["test__check_and_handle_key_structure_1"]
         schema_link_list = {}
         storage_keys = ["st0", "st2"]
-        schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st0.st2"
-        }
-        sources = {
-            "st1": {
-                "st2": "value1"
-            }
-        }
         index = 0
         key = "st0"
 
@@ -1033,20 +786,15 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"st0と一致するストレージのキーが見つかりませんでした。({schema_property})"
 
-    def test__check_and_handle_key_structure_2(self):
+    def test__check_and_handle_key_structure_2(self, read_test_source_data, read_test_components):
         """（異常系テスト）ストレージにキーが不足していた場合のテストケースです。"""
+
         new_schema = {}
+        sources = read_test_source_data["test__check_and_handle_key_structure_2"]
+        schema_property = "sc1.sc2"
+        components = read_test_components["test__check_and_handle_key_structure_2"]
         schema_link_list = {}
         storage_keys = ["st1", "st2"]
-        schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-        }
-        sources = {
-            "st1": "value1"
-        }
         index = 0
         key = "st1"
 
@@ -1057,24 +805,17 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"データ構造が定義と異なっています。({schema_property})"
 
-    def test__handle_list_1(self, read_test_source_data):
+    def test__handle_list_1(self, read_test_source_data, read_test_components):
         """（異常系テスト）リスト内のオブジェクトに期待されるキーが存在しないものが含まれる場合のテストケースです。"""
+
         new_schema = {}
+        sources = read_test_source_data["test__handle_list_1"]
+        schema_property = "sc1[].sc2.sc3"
+        components = read_test_components["test__handle_list_1"]
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3"]
-        schema_property = "sc1[].sc2.sc3"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3",
-            "list": {
-                "st1": "sc1"
-            }
-        }
         index = 0
         key = "st1"
-
-        sources = read_test_source_data["test__handle_list_1"]
 
         target_class = GrdmMapping()
         with pytest.raises(KeyNotFoundError) as e:
@@ -1084,25 +825,17 @@ class TestGrdmMapping():
         assert e.value.args[0] == [f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})",
                                    f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})"]
 
-    def test__handle_list_2(self, read_test_source_data):
+    def test__handle_list_2(self, read_test_source_data, read_test_components):
         """（異常系テスト）異なる複数のリスト内にキーが存在しないオブジェクトが存在する場合のテストケースです。"""
+
         new_schema = {}
+        sources = read_test_source_data["test__handle_list_2"]
+        schema_property = "sc1[].sc2[].sc3"
+        components = read_test_components["test__handle_list_2"]
         schema_link_list = {}
         storage_keys = ["st1", "st2", "st3", "st4"]
-        schema_property = "sc1[].sc2[].sc3"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2.st3.st4",
-            "list": {
-                "st1": "sc1",
-                "st1.st2": "sc1.sc2"
-            }
-        }
         index = 0
         key = "st1"
-
-        sources = read_test_source_data["test__handle_list_2"]
 
         with pytest.raises(KeyNotFoundError) as e:
             target_class = GrdmMapping()
@@ -1112,27 +845,15 @@ class TestGrdmMapping():
         assert e.value.args[0] == [f"st2と一致するストレージのキーが見つかりませんでした。({schema_property})",
                                    f"['st3と一致するストレージのキーが見つかりませんでした。({schema_property})']"]
 
-    def test__handle_list_3(self):
+    def test__handle_list_3(self, read_test_source_data, read_test_components):
         """（異常系テスト）マッピング定義の'list'で指定されたインデックスに対応するデータがストレージに存在しない場合のテストケースです。"""
+
         new_schema = {}
+        sources = read_test_source_data["test__handle_list_3"]
+        schema_property = "sc1.sc2"
+        components = read_test_components["test__handle_list_3"]
         schema_link_list = {}
         storage_keys = ["st1", "st2"]
-        schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-            "list": {
-                "st1": 2
-            }
-        }
-        sources = {
-            "st1": [
-                {
-                    "st2": "value1"
-                }
-            ]
-        }
         index = 0
         key = "st1"
 
@@ -1143,117 +864,66 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"指定されたインデックス:2が存在しません({schema_property})"
 
-    def test__get_and_insert_final_key_value_1(self):
+    def test__get_and_insert_final_key_value_1(self, read_test_components, read_test_expected_schema):
         """（正常系テスト）末端のキーが存在しない場合のテストケースです。"""
+
         new_schema = {}
-        schema_link_list = {}
-        schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-        }
         source = {}
+        schema_property = "sc1.sc2"
+        components = read_test_components["test__get_and_insert_final_key_value_1"]
         final_key = "st2"
+        schema_link_list = {}
 
-        expected_schema = {
-            "sc1": {
-                "sc2": None
-            }
-        }
+        expected_schema = read_test_expected_schema["test__get_and_insert_final_key_value_1"]
 
         target_class = GrdmMapping()
         new_schema = target_class._get_and_insert_final_key_value(new_schema, source, schema_property, components, final_key, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__get_and_insert_final_key_value_2(self):
+    def test__get_and_insert_final_key_value_2(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """（正常系テスト）末端のキーがリストであり、その値と対応するリストが存在する場合のテストケースです。"""
+
         new_schema = {}
-        schema_link_list = {}
+        source = read_test_source_data["test__get_and_insert_final_key_value_2"]
         schema_property = "sc1[].sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-            "list": {
-                "st1.st2": "sc1"
-            }
-        }
-        source = {
-            "st2": [
-                "value1",
-                "value2"
-            ]
-        }
+        components = read_test_components["test__get_and_insert_final_key_value_2"]
         final_key = "st2"
-        expected_schema = {
-            "sc1": [
-                {
-                    "sc2": "value1"
-                },
-                {
-                    "sc2": "value2"
-                }
-            ]
-        }
+        schema_link_list = {}
+
+        expected_schema = read_test_expected_schema["test__get_and_insert_final_key_value_2"]
 
         target_class = GrdmMapping()
         new_schema = target_class._get_and_insert_final_key_value(new_schema, source, schema_property, components, final_key, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__get_and_insert_final_key_value_3(self):
+    def test__get_and_insert_final_key_value_3(self, read_test_source_data, read_test_components, read_test_expected_schema):
         """（正常系テスト）末端のキーがリストであり、その値と対応するリストが存在しない場合のテストケースです。"""
+
         new_schema = {}
-        schema_link_list = {}
+        source = read_test_source_data["test__get_and_insert_final_key_value_3"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-            "list": {
-                "st1.st2": 1
-            }
-        }
-        source = {
-            "st2": [
-                "value1",
-                "value2"
-            ]
-        }
+        components = read_test_components["test__get_and_insert_final_key_value_3"]
         final_key = "st2"
-        expected_schema = {
-            "sc1": {
-                "sc2": "value2"
-            }
-        }
+        schema_link_list = {}
+
+        expected_schema = read_test_expected_schema["test__get_and_insert_final_key_value_3"]
 
         target_class = GrdmMapping()
         new_schema = target_class._get_and_insert_final_key_value(new_schema, source, schema_property, components, final_key, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__get_and_insert_final_key_value_4(self):
+    def test__get_and_insert_final_key_value_4(self, read_test_source_data, read_test_components):
         """（異常系テスト）'list'に記載された末端のキーのリストのインデックスと対応するデータが存在しない場合のテストケースです。"""
+
         new_schema = {}
-        schema_link_list = {}
+        source = read_test_source_data["test__get_and_insert_final_key_value_4"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-            "list": {
-                "st1.st2": 3
-            }
-        }
-        source = {
-            "st2": [
-                "value1",
-                "value2"
-            ]
-        }
+        components = read_test_components["test__get_and_insert_final_key_value_4"]
         final_key = "st2"
+        schema_link_list = {}
 
         with pytest.raises(MappingDefinitionError) as e:
             target_class = GrdmMapping()
@@ -1261,22 +931,15 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"指定されたインデックスが存在しません({schema_property})"
 
-    def test__get_and_insert_final_key_value_5(self):
+    def test__get_and_insert_final_key_value_5(self, read_test_source_data, read_test_components):
         """（異常系テスト）マッピング定義に記載されているストレージのキーが不足している場合のテストケースです。"""
+
         new_schema = {}
-        schema_link_list = {}
+        source = read_test_source_data["test__get_and_insert_final_key_value_5"]
         schema_property = "sc1.sc2"
-        components = {
-            "type": "string",
-            "source": "project_metadata",
-            "value": "st1.st2",
-        }
-        source = {
-            "st2": {
-                "st3": "value1"
-            }
-        }
+        components = read_test_components["test__get_and_insert_final_key_value_5"]
         final_key = "st2"
+        schema_link_list = {}
 
         with pytest.raises(MappingDefinitionError) as e:
             target_class = GrdmMapping()
@@ -1284,106 +947,74 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"データ構造が定義と異なっています({schema_property})"
 
-    def test__add_property_1(self):
+    def test__add_property_1(self, read_test_new_schema, read_test_expected_schema):
         """（正常系テスト）スキーマに既にリスト構造が存在しており、そのリストがストレージと対応付いていない場合のテストケースです。"""
-        new_schema = {
-            "sc1": [
-                {
-                    "sc2": "value1"
-                }
-            ]
-        }
+
+        new_schema = read_test_new_schema["test__add_property_1"]
         schema_property = "sc1[].sc3"
         type = "string"
         storage_data = ["value2"]
         schema_link_list = {}
-        expected_schema = {
-            "sc1": [
-                {
-                    "sc2": "value1",
-                    "sc3": "value2"
-                }
-            ]
-        }
+
+        expected_schema = read_test_expected_schema["test__add_property_1"]
 
         target_class = GrdmMapping()
         new_schema = target_class._add_property(new_schema, schema_property, type, storage_data, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__add_property_2(self):
+    def test__add_property_2(self, read_test_expected_schema):
         """ストレージにデータが存在しない場合のテストケースです。（正常系テスト 21)"""
+
         new_schema = {}
         schema_property = "sc1.sc2[]"
         type = "string"
         storage_data = []
         schema_link_list = {}
-        expected_schema = {
-            "sc1": {
-                "sc2": []
-            }
-        }
+
+        expected_schema = read_test_expected_schema["test__add_property_2"]
 
         target_class = GrdmMapping()
         new_schema = target_class._add_property(new_schema, schema_property, type, storage_data, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__add_property_3(self):
+    def test__add_property_3(self, read_test_expected_schema):
         """ストレージにデータが存在しない場合（リスト）のテストケースです。（正常系テスト 22)"""
+
         new_schema = {}
         schema_property = "sc1.sc2"
         type = "string"
         storage_data = []
         schema_link_list = {}
-        expected_schema = {
-            "sc1": {
-                "sc2": None
-            }
-        }
+
+        expected_schema = read_test_expected_schema["test__add_property_3"]
 
         target_class = GrdmMapping()
         new_schema = target_class._add_property(new_schema, schema_property, type, storage_data, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__add_property_4(self):
+    def test__add_property_4(self, read_test_new_schema, read_test_expected_schema):
         """（正常系テスト）既にデータが存在しているリストにデータを加える場合のテストケースです。"""
-        new_schema = {
-            "sc1": {
-                "sc2": [
-                    "value1",
-                    "value2"
-                ]
-            }
-        }
+
+        new_schema = read_test_new_schema["test__add_property_4"]
         schema_property = "sc1.sc2[]"
         type = "string"
         storage_data = ["value3", "value4"]
         schema_link_list = {}
-        expected_schema = {
-            "sc1": {
-                "sc2": [
-                    "value1",
-                    "value2",
-                    "value3",
-                    "value4"
-                ]
-            }
-        }
+
+        expected_schema = read_test_expected_schema["test__add_property_4"]
 
         target_class = GrdmMapping()
         new_schema = target_class._add_property(new_schema, schema_property, type, storage_data, schema_link_list)
 
         assert new_schema == expected_schema
 
-    def test__add_property_5(self):
+    def test__add_property_5(self, read_test_new_schema):
         """（異常系テスト）既にdict構造をもつキーに対してlistとしてアクセスしようとした場合のテストケースです。"""
-        new_schema = {
-            "sc1": {
-                "sc2": "value1"
-            }
-        }
+
+        new_schema = read_test_new_schema["test__add_property_5"]
         schema_property = "sc1[].sc3"
         type = "string"
         storage_data = ["value2"]
@@ -1395,15 +1026,10 @@ class TestGrdmMapping():
 
         assert str(e.value) == f"マッピング定義に誤りがあります({schema_property})"
 
-    def test__add_property_6(self):
+    def test__add_property_6(self, read_test_new_schema):
         """（異常系テスト）既にlist構造をもつキーに対してdictとしてアクセスしようとした場合のテストケースです。"""
-        new_schema = {
-            "sc1": [
-                {
-                    "sc2": "value1"
-                }
-            ]
-        }
+
+        new_schema = read_test_new_schema["test__add_property_6"]
         schema_property = "sc1.sc3"
         type = "string"
         storage_data = ["value2"]
@@ -1417,6 +1043,7 @@ class TestGrdmMapping():
 
     def test__add_property_7(self, mocker):
         """（異常系テスト）無効なtypeが定義されていた場合のテストケースです。"""
+
         new_schema = {}
         schema_property = "sc1.sc2"
         type = "invalid_type"
