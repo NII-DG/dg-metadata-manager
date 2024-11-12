@@ -1,0 +1,188 @@
+{
+    "test__extract_and_insert_metadata_1": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_2": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_3": {
+        "type": "number",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_4": {
+        "type": "number",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_5": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_6": {
+        "type": "number",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_7": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_8": {
+        "type": "number",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_9": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3",
+        "list": {
+            "st1.st2": "sc1"
+        }
+    },
+    "test__extract_and_insert_metadata_10": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_11": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3",
+        "list": {
+            "st1.st2": 0
+        }
+    },
+    "test__extract_and_insert_metadata_12": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3.st4",
+        "list": {
+            "st1": "sc1",
+            "st1.st2": 0
+        }
+    },
+    "test__extract_and_insert_metadata_13": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_14": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_15": {
+        "type": "number",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_16": {
+        "type": "number",
+        "source": "project_metadata",
+        "value": "st1.st2.st3"
+    },
+    "test__extract_and_insert_metadata_17": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st3"
+    },
+    "test__extract_and_insert_metadata_18": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2"
+    },
+    "test__extract_and_insert_metadata_19": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2",
+        "list": {
+            "st1": "sc1"
+        }
+    },
+    "test__extract_and_insert_metadata_20": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3.st5",
+        "list": {
+            "st1": "sc1",
+            "st1.st2": 0
+        }
+    },
+    "test__check_and_handle_key_structure_1": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st0.st2"
+    },
+    "test__check_and_handle_key_structure_2": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2"
+    },
+    "test__handle_list_1": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3",
+        "list": {
+            "st1": "sc1"
+        }
+    },
+    "test__handle_list_2": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2.st3.st4",
+        "list": {
+            "st1": "sc1",
+            "st1.st2": "sc1.sc2"
+        }
+    },
+    "test__handle_list_3": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2",
+        "list": {
+            "st1": 2
+        }
+    },
+    "test__get_and_insert_final_key_value_1": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2"
+    },
+    "test__get_and_insert_final_key_value_2": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2",
+        "list": {
+            "st1.st2": "sc1"
+        }
+    },
+    "test__get_and_insert_final_key_value_3": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2",
+        "list": {
+            "st1.st2": 1
+        }
+    },
+    "test__get_and_insert_final_key_value_4": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2",
+        "list": {
+            "st1.st2": 3
+        }
+    },
+    "test__get_and_insert_final_key_value_5": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "st1.st2"
+    }
+}

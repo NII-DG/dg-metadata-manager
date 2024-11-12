@@ -4,8 +4,8 @@ from dg_mm.errors import (
     InvalidIdError,
     InvalidStorageError,
     InvalidTokenError,
-    NotFoundKeyError,
-    NotFoundMappingDefinitionError
+    KeyNotFoundError,
+    MappingDefinitionNotFoundError
 )
 from dg_mm.models.metadata_manager import MetadataManager
 
@@ -58,7 +58,7 @@ class TestMetadataManager:
         """対応していないスキーマを指定"""
 
         # モック化
-        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundMappingDefinitionError)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=MappingDefinitionNotFoundError)
 
         # テスト実行
         param = {
@@ -68,7 +68,7 @@ class TestMetadataManager:
             "id": "valid"
         }
         target_class = MetadataManager()
-        with pytest.raises(NotFoundMappingDefinitionError):
+        with pytest.raises(MappingDefinitionNotFoundError):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_2(self):
@@ -82,7 +82,7 @@ class TestMetadataManager:
             "id": "valid"
         }
         target_class = MetadataManager()
-        with pytest.raises(InvalidStorageError, match="対応していないストレージが指定されました"):
+        with pytest.raises(InvalidStorageError, match="対応していないストレージが指定されました。"):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_3(self, mocker):
@@ -121,7 +121,7 @@ class TestMetadataManager:
         """オプション(取得するプロパティ一覧)が空"""
 
         # モック化
-        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundKeyError)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=KeyNotFoundError)
 
         # テスト実行
         param = {
@@ -132,14 +132,14 @@ class TestMetadataManager:
             "filter_properties": []
         }
         target_class = MetadataManager()
-        with pytest.raises(NotFoundKeyError):
+        with pytest.raises(KeyNotFoundError):
             target_class.get_metadata(**param)
 
     def test_get_metadata_failure_6(self, mocker):
         """スキーマに存在しないプロパティをオプションに指定"""
 
         # モック化
-        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=NotFoundKeyError)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping.mapping_metadata", side_effect=KeyNotFoundError)
 
         # テスト実行
         param = {
@@ -150,5 +150,5 @@ class TestMetadataManager:
             "filter_properties": ["invalid_property"]
         }
         target_class = MetadataManager()
-        with pytest.raises(NotFoundKeyError):
+        with pytest.raises(KeyNotFoundError):
             target_class.get_metadata(**param)

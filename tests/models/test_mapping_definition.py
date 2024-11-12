@@ -1,7 +1,7 @@
 """mappyng_definition.pyをテストするためのモジュールです。"""
 import pytest
 
-from dg_mm.errors import (MappingDefinitionError, NotFoundKeyError, NotFoundMappingDefinitionError)
+from dg_mm.errors import (MappingDefinitionError, KeyNotFoundError, MappingDefinitionNotFoundError)
 from dg_mm.models.mapping_definition import DefinitionManager
 
 
@@ -85,9 +85,9 @@ class TestDefinitionManager():
         # _read_mapping_definitionがNotFoundMappingDefinitionErrorを返すようにモック化
         mocker.patch(
             "dg_mm.models.mapping_definition.DefinitionManager._read_mapping_definition",
-            side_effect=NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません。"))
+            side_effect=MappingDefinitionNotFoundError("マッピング定義ファイルが見つかりません。"))
 
-        with pytest.raises(NotFoundMappingDefinitionError) as e:
+        with pytest.raises(MappingDefinitionNotFoundError) as e:
             target_class = DefinitionManager()
             target_class.get_and_filter_mapping_definition(schema, storage)
 
@@ -102,9 +102,9 @@ class TestDefinitionManager():
 
         mocker.patch(
             "dg_mm.models.mapping_definition.DefinitionManager._read_mapping_definition",
-            side_effect=NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません。"))
+            side_effect=MappingDefinitionNotFoundError("マッピング定義ファイルが見つかりません。"))
 
-        with pytest.raises(NotFoundMappingDefinitionError) as e:
+        with pytest.raises(MappingDefinitionNotFoundError) as e:
             target_class = DefinitionManager()
             target_class.get_and_filter_mapping_definition(schema, storage)
 
@@ -139,11 +139,11 @@ class TestDefinitionManager():
             "dg_mm.models.mapping_definition.DefinitionManager._read_mapping_definition",
             return_value=test_mapping_definition)
 
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             target_class = DefinitionManager()
             target_class.get_and_filter_mapping_definition(schema, storage, filter_properties)
 
-        assert str(e.value) == "指定したプロパティ: ['non_existent_property'] が存在しません"
+        assert str(e.value) == "指定したプロパティ: ['non_existent_property'] が存在しません。"
 
     def test_get_and_filter_mapping_definition_8(self, mocker, read_test_mapping_definition):
         """(異常系テスト)filter_propertiesが空のリストとして渡された場合のテストケースです。"""
@@ -158,7 +158,7 @@ class TestDefinitionManager():
             "dg_mm.models.mapping_definition.DefinitionManager._read_mapping_definition",
             return_value=test_mapping_definition)
 
-        with pytest.raises(NotFoundKeyError) as e:
+        with pytest.raises(KeyNotFoundError) as e:
             target_class = DefinitionManager()
             target_class.get_and_filter_mapping_definition(schema, storage, filter_properties)
 
@@ -183,8 +183,7 @@ class TestDefinitionManager():
         schema = "invalid_schema"
         storage = "invalid_storage"
 
-        # NotFoundMappingDefinitionErrorをキャッチするようにしてテストを実行
-        with pytest.raises(NotFoundMappingDefinitionError)as e:
+        with pytest.raises(MappingDefinitionNotFoundError)as e:
             target_class = DefinitionManager()
             target_class._read_mapping_definition(schema, storage)
 
