@@ -37,223 +37,223 @@
         "value": null
 
     },
-    "dmp.detaCreator[].email[]": {
+    "dmp[].detaCreator[].email[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaCreator[].affiliation[].address[]": {
+    "dmp[].detaCreator[].affiliation[].address[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaCreator[].affiliation[].name": {
+    "dmp[].detaCreator[].affiliation[].name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaCreator[].affiliation[].ror": {
+    "dmp[].detaCreator[].affiliation[].ror": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaCreator[].name": {
+    "dmp[].detaCreator[].name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaCreator[].orcid": {
+    "dmp[].detaCreator[].orcid": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaCreator[].eradResearcherNumber": {
+    "dmp[].detaCreator[].eradResearcherNumber": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].email[]": {
+    "dmp[].detaManager[].email[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].affiliation[].address[]": {
+    "dmp[].detaManager[].affiliation[].address[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].affiliation[].name": {
+    "dmp[].detaManager[].affiliation[].name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].affiliation[].ror": {
+    "dmp[].detaManager[].affiliation[].ror": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].name": {
+    "dmp[].detaManager[].name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].orcid": {
+    "dmp[].detaManager[].orcid": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.detaManager[].eradResearcherNumber": {
+    "dmp[].detaManager[].eradResearcherNumber": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.hostingInstitution[].address[]": {
+    "dmp[].hostingInstitution[].address[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.hostingInstitution[].name": {
+    "dmp[].hostingInstitution[].name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.hostingInstitution[].ror": {
+    "dmp[].hostingInstitution[].ror": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataLicenseInformation[].copyright[]": {
+    "dmp[].dataLicenseInformation.copyright[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataLicenseInformation[].name": {
+    "dmp[].dataLicenseInformation.name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataLicenseInformation[].url": {
+    "dmp[].dataLicenseInformation.url": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataEncodingFormat[]": {
+    "dmp[].dataEncodingFormat[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dmpFormatProvider[].address[]": {
+    "dmp[].dmpFormatProvider[].address[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dmpFormatProvider[].name": {
+    "dmp[].dmpFormatProvider[].name": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dmpFormatProvider[].ror": {
+    "dmp[].dmpFormatProvider[].ror": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataNumber": {
+    "dmp[].dataNumber": {
         "type": "number",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataDescription": {
+    "dmp[].dataDescription": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataAccessRightsInformation.conditionOfAccess": {
+    "dmp[].dataAccessRightsInformation.conditionOfAccess": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataAccessRightsInformation.dateAvailable": {
+    "dmp[].dataAccessRightsInformation.dateAvailable": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dataAccessRightsInformation.dataAccessRequirements": {
+    "dmp[].dataAccessRightsInformation.dataAccessRequirements": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.approximateSize": {
+    "dmp[].approximateSize": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.contact": {
+    "dmp[].contact": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.measurementTechnique": {
+    "dmp[].measurementTechnique": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "dmp.dmpFormat": {
+    "dmp[].dmpFormat": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "funder.address": {
+    "funder[].address[]": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "funder.funderId": {
+    "funder[].funderId": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "funder.ror": {
+    "funder[].ror": {
         "type": "string",
         "source": null,
         "value": null,
         "list": {}
     },
-    "funder.name": {
+    "funder[].name": {
         "type": "string",
         "source": null,
         "value": null,
@@ -567,22 +567,22 @@
     },
     "projectItem[].name": {
         "type": "string",
-        "source": "file_metadata",
-        "value": "data.attributes.files.items.data.grdm-file:title-ja.value",
+        "source": null,
+        "value": null,
         "list": {"files" : "",
                 "items": ""}
     },
     "projectItem[]description": {
         "type": "string",
-        "source": "file_metadata",
-        "value": "data.attributes.files.items.data.grdm-file:data-description-ja.value",
+        "source": null,
+        "value": null,
         "list": {"files" : "",
                 "items": ""}
     },
     "projectItem[].field": {
         "type": "string",
-        "source": "file_metadata",
-        "value": "data.attributes.files.items.data.grdm-file:data-research-field.value",
+        "source": null,
+        "value": null,
         "list": {"files" : "",
                 "items": ""}
     },
