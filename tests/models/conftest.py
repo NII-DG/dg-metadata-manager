@@ -61,7 +61,7 @@ def create_invalid_test_definition():
 def read_test_mapping_definition():
     """テスト時に用いるマッピング定義を読み込みます。"""
 
-    path = 'tests/models/data/mapping_definition.json'
+    path = 'tests/models/data/grdm_mapping_mapping_definition.json'
 
     with open(path, mode='r') as f:
         data = json.load(f)
@@ -73,7 +73,7 @@ def read_test_mapping_definition():
 def read_test_expected_schema():
     """テスト実行時に出力が予測されるスキーマを読み込みます。"""
 
-    path = 'tests/models/data/expected_schema.json'
+    path = 'tests/models/data/grdm_mapping_expected_schema.json'
 
     with open(path, mode='r') as f:
         data = json.load(f)
@@ -85,7 +85,7 @@ def read_test_expected_schema():
 def read_test_source_data():
     """テスト時に用いるストレージのソースデータを読み込みます。"""
 
-    path = 'tests/models/data/source_data.json'
+    path = 'tests/models/data/grdm_mapping_source_data.json'
 
     with open(path, mode='r') as f:
         data = json.load(f)
@@ -97,7 +97,7 @@ def read_test_source_data():
 def read_test_new_schema():
     """テスト時に用いる取得したデータを挿入するスキーマを読み込みます。"""
 
-    path = 'tests/models/data/new_schema.json'
+    path = 'tests/models/data/grdm_mapping_new_schema.json'
 
     with open(path, mode='r') as f:
         data = json.load(f)
@@ -107,9 +107,9 @@ def read_test_new_schema():
 
 @pytest.fixture
 def read_test_components():
-    """テスト時に用いる取得したデータを挿入するスキーマを読み込みます。"""
+    """テスト時に用いるマッピング定義情報を読み込みます。"""
 
-    path = 'tests/models/data/components.json'
+    path = 'tests/models/data/grdm_mapping_components.json'
 
     with open(path, mode='r') as f:
         data = json.load(f)

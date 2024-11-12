@@ -1,4 +1,18 @@
 {
+    "test_mapping_metadata_15": {
+        "sc1": [
+            {
+                "sc2": [
+                    "value1"
+                ],
+                "sc3": [
+                    {
+                        "sc5": "value2"
+                    }
+                ]
+            }
+        ]
+    },
     "test__extract_and_insert_metadata_17": {
         "sc1": [
             {
@@ -57,5 +71,34 @@
                 "sc2": "value1"
             }
         ]
+    },
+    "test__add_unmap_property_3": {
+        "sc1": {
+            "sc2": [
+                {
+                    "dummy_key": "dummy_value1"
+                },
+                {
+                    "dummy_key": "dummy_value2"
+                }
+            ]
+        }
+    },
+    "test__add_unmap_property_4": {
+        "sc1": {
+            "sc2": "value1"
+        }
+    },
+    "test__add_unmap_property_5": {
+        "sc1": [
+            {
+                "sc2": "value1"
+            }
+        ]
+    },
+    "test__add_unmap_property_6": {
+        "sc1": {
+            "sc2": "value1"
+        }
     }
 }

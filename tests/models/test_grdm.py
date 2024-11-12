@@ -197,7 +197,7 @@ class TestGrdmMapping():
         assert str(e.value) == error_message
 
     def test_mapping_metadata_8(self, mocker):
-        """(異常系テスト 11),metadata_sourcesに存在する取得先からのメタデータの取得に失敗した場合のテストケースです。"""
+        """(異常系テスト 11)metadata_sourcesに存在する取得先からのメタデータの取得に失敗した場合のテストケースです。"""
 
         error_message = "dummy message"
         metadata_sources = ["project_info", "member_info", "project_metadata", "file_metadata"]
@@ -214,7 +214,7 @@ class TestGrdmMapping():
         assert str(e.value) == error_message
 
     def test_mapping_metadata_9(self, mocker, read_test_mapping_definition):
-        """(異常系テスト 12),マッピングに失敗した場合のエラーケースです。"""
+        """(異常系テスト 12)マッピングに失敗した場合のエラーケースです。"""
 
         error_message = "dummy message"
         metadata_sources = ["member_info"]
@@ -348,6 +348,29 @@ class TestGrdmMapping():
             target_class.mapping_metadata("dummy", "invalid_token", "invalid_project_id")
 
         assert str(e.value) == "対応していないスキーマが指定されました。"
+
+    def test_mapping_metadata_15(self, mocker, read_test_mapping_definition, read_test_new_schema):
+        """(異常系テスト)マッピング先がないプロパティとマッピング先があるプロパティのスキーマ定義に差異があった場合のテストケースです。"""
+
+        metadata_sources = ["member_info"]
+        source_data = {"key": "value1"}
+
+        test_mapping_definition = read_test_mapping_definition["test_mapping_metadata_15"]
+        new_schema = read_test_new_schema["test_mapping_metadata_15"]
+
+        mocker.patch("dg_mm.models.grdm.GrdmAccess.check_authentication")
+        mocker.patch("dg_mm.models.mapping_definition.DefinitionManager.get_and_filter_mapping_definition", return_value=test_mapping_definition)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping._find_metadata_sources", return_value=metadata_sources)
+        mocker.patch("dg_mm.models.grdm.GrdmAccess.get_member_info", return_value=source_data)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping._extract_and_insert_metadata", return_value=new_schema)
+        mocker.patch("dg_mm.models.grdm.GrdmMapping._add_unmap_property", side_effect=MappingDefinitionError())
+
+        # テスト実施
+        with pytest.raises(MappingDefinitionError) as e:
+            target_class = GrdmMapping()
+            target_class.mapping_metadata("RF", "valid_token", "valid_project_id")
+
+        assert str(e.value) == "データ構造が定義と異なっています。(sc1[].sc3[].sc4[])"
 
     def test__find_metadata_sources_1(self, read_test_mapping_definition):
         """(正常系テスト 7)マッピング定義にある全取得先を取得する場合のテストケースです。"""
@@ -1153,6 +1176,84 @@ class TestGrdmMapping():
         with pytest.raises(MappingDefinitionError):
             target_class = GrdmMapping()
             target_class._convert_data_type(data, type)
+
+    def test__add_unmap_property_1(self, read_test_expected_schema):
+        """(正常系テスト)空のスキーマにプロパティを追加する場合のテストケースです。"""
+
+        current_schema = {}
+        schema_properties = ["sc1", "sc2"]
+
+        expected_schema = read_test_expected_schema["test__add_unmap_property_1"]
+
+        # テスト実行
+        target_class = GrdmMapping()
+        new_schema = target_class._add_unmap_property(current_schema, schema_properties)
+
+        # 結果の確認
+        assert new_schema == expected_schema
+
+    def test__add_unmap_property_2(self, read_test_expected_schema):
+        """(正常系テスト)空のスキーマにリストのプロパティを追加する場合のテストケースです。"""
+
+        current_schema = {}
+        schema_properties = ["sc1[]", "sc2"]
+
+        expected_schema = read_test_expected_schema["test__add_unmap_property_2"]
+
+        # テスト実行
+        target_class = GrdmMapping()
+        new_schema = target_class._add_unmap_property(current_schema, schema_properties)
+
+        # 結果の確認
+        assert new_schema == expected_schema
+
+    def test__add_unmap_property_3(self, read_test_new_schema, read_test_expected_schema):
+        """(正常系テスト)1つ上の階層まですでにスキーマに存在するプロパティを追加する場合のテストケースです。"""
+
+        current_schema = read_test_new_schema["test__add_unmap_property_3"]
+        schema_properties = ["sc1", "sc2[]", "sc3"]
+
+        expected_schema = read_test_expected_schema["test__add_unmap_property_3"]
+
+        # テスト実行
+        target_class = GrdmMapping()
+        new_schema = target_class._add_unmap_property(current_schema, schema_properties)
+
+        # 結果の確認
+        assert new_schema == expected_schema
+
+    def test__add_unmap_property_4(self, read_test_new_schema):
+        """(異常系テスト)プロパティがリストとして定義されているのにスキーマにリスト以外が存在する場合のテストケースです。"""
+
+        current_schema = read_test_new_schema["test__add_unmap_property_4"]
+        schema_properties = ["sc1", "sc2[]", "sc3"]
+
+        # テスト実行
+        with pytest.raises(MappingDefinitionError):
+            target_class = GrdmMapping()
+            target_class._add_unmap_property(current_schema, schema_properties)
+
+    def test__add_unmap_property_5(self, read_test_new_schema):
+        """(異常系テスト)プロパティがオブジェクトとして定義されているのにスキーマにオブジェクト以外が存在する場合のテストケースです。"""
+
+        current_schema = read_test_new_schema["test__add_unmap_property_5"]
+        schema_properties = ["sc1", "sc2", "sc3"]
+
+        # テスト実行
+        with pytest.raises(MappingDefinitionError):
+            target_class = GrdmMapping()
+            target_class._add_unmap_property(current_schema, schema_properties)
+
+    def test__add_unmap_property_6(self, read_test_new_schema):
+        """(異常系テスト)一番下の階層なのにすでにスキーマにプロパティが存在する場合のテストケースです。"""
+
+        current_schema = read_test_new_schema["test__add_unmap_property_6"]
+        schema_properties = ["sc1", "sc2"]
+
+        # テスト実行
+        with pytest.raises(MappingDefinitionError):
+            target_class = GrdmMapping()
+            target_class._add_unmap_property(current_schema, schema_properties)
 
 
 class TestGrdmAccess():

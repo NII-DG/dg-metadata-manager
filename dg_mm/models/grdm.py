@@ -546,6 +546,7 @@ class GrdmMapping():
 
             # キーが存在しない場合
             if base_key not in current_schema:
+                # スキーマにキーを追加(値は空のリスト)
                 # リスト内に含める項目が存在しないので、これより下の階層は作成しない
                 current_schema[base_key] = []
 
@@ -556,6 +557,7 @@ class GrdmMapping():
                     raise MappingDefinitionError()
 
                 for list_item in current_schema[base_key]:
+                    # 下の階層をスキーマに追加する
                     self._add_unmap_property(list_item, schema_properties[1:])
         else:
             # 一番下の階層の場合
@@ -564,18 +566,21 @@ class GrdmMapping():
                 if current_property in current_schema:
                     raise MappingDefinitionError()
 
+                # スキーマにキーを追加(値はNone)
                 current_schema[current_property] = None
-            else:
-                # 一番下の階層なのにすでにスキーマにプロパティが存在する場合
 
-                # キーが存在しない場合はオブジェクト作成
+            # 途中の階層の場合
+            else:
+                # キーが存在しない場合
                 if current_property not in current_schema:
+                    # スキーマにキーを追加(値は空のオブジェクト)
                     current_schema[current_property] = {}
 
-                # オブジェクトとして定義されているのにスキーマにオブジェクト以外が定義されている場合
+                # オブジェクトとして定義されているのにスキーマにオブジェクト以外が存在する場合
                 elif not isinstance(current_schema[current_property], dict):
                     raise MappingDefinitionError()
 
+                # 下の階層をスキーマに追加する
                 self._add_unmap_property(current_schema[current_property], schema_properties[1:])
 
         return current_schema

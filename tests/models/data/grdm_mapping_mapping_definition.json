@@ -73,6 +73,29 @@
             }
         }
     },
+    "test_mapping_metadata_15": {
+        "sc1[].sc2[]": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st2.st3",
+            "list": {
+                "st1": "sc1"
+            }
+        },
+        "sc1[].sc3[].sc4[]": {
+            "type": "string",
+            "value": null
+        },
+        "sc1[].sc3[].sc5": {
+            "type": "string",
+            "source": "member_info",
+            "value": "st1.st4.st5",
+            "list": {
+                "st1": "sc1",
+                "st4": "sc3"
+            }
+        }
+    },
     "test__find_metadata_sources_1": {
         "sc1[].sc2[]": {
             "type": "string",

@@ -185,5 +185,27 @@
                 "value4"
             ]
         }
+    },
+    "test__add_unmap_property_1": {
+        "sc1": {
+            "sc2": null
+        }
+    },
+    "test__add_unmap_property_2": {
+        "sc1": []
+    },
+    "test__add_unmap_property_3": {
+        "sc1": {
+            "sc2": [
+                {
+                    "dummy_key": "dummy_value1",
+                    "sc3": null
+                },
+                {
+                    "dummy_key": "dummy_value2",
+                    "sc3": null
+                }
+            ]
+        }
     }
 }
