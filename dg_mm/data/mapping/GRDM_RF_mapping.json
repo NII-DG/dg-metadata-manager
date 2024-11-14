@@ -1,0 +1,506 @@
+{
+    "researcher[].email[]": {
+        "type": "string",
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.email",
+        "list": {
+            "data": "researcher"
+        }
+    },
+    "researcher[].affiliation[].adress[]": {
+        "type": "string",
+        "value": null
+    },
+    "researcher[].affiliation[].name": {
+        "type": "string",
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.employment.institution_ja",
+        "list": {
+            "data": "researcher",
+            "data.embeds.users.data.attributes.employment": "affiliation"
+        }
+    },
+    "researcher[].affiliation[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "researcher[].name": {
+        "type": "string",
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.full_name",
+        "list": {
+            "data": "researcher"
+        }
+    },
+    "researcher[].orcid": {
+        "type": "string",
+        "source": "member_info",
+        "value": "data.embeds.users.data.attributes.social.orcid",
+        "list": {
+            "data": "researcher"
+        }
+    },
+    "researcher[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].email[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].affiliation[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].affiliation[].name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].affiliation[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].orcid": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaCreator[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].email[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].affiliation[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].affiliation[].name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].affiliation[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].orcid": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].detaManager[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].hostingInstitution[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].hostingInstitution[].name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].hostingInstitution[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataLicenseInformation.copyright[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataLicenseInformation.name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataLicenseInformation.url": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataEncodingFormat[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dmpFormatProvider[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dmpFormatProvider[].name": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dmpFormatProvider[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataNumber": {
+        "type": "number",
+        "value": null
+    },
+    "dmp[].dataDescription": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataAccessRightsInformation.conditionOfAccess": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataAccessRightsInformation.dateAvailable": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dataAccessRightsInformation.dataAccessRequirements": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].approximateSize": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].contact": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].measurementTechnique": {
+        "type": "string",
+        "value": null
+    },
+    "dmp[].dmpFormat": {
+        "type": "string",
+        "value": null
+    },
+    "funder[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "funder[].funderId": {
+        "type": "string",
+        "value": null
+    },
+    "funder[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "funder[].name": {
+        "type": "string",
+        "value": null
+    },
+    "funding[].funder[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "funding[].funder[].name": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "data.attributes.registration_responses.funder",
+        "list": {
+            "data": "funding"
+        }
+    },
+    "funding[].funder[].funderId": {
+        "type": "string",
+        "value": null
+    },
+    "funding[].funder[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "funding[].name": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "data.attributes.registration_responses.program-name-ja",
+        "list": {
+            "data": "funding"
+        }
+    },
+    "funding[].description": {
+        "type": "string",
+        "value": null
+    },
+    "funding[].japanGrantNumber": {
+        "type": "string",
+        "source": "project_metadata",
+        "value": "data.attributes.registration_responses.japan-grant-number",
+        "list": {
+            "data": "funding"
+        }
+    },
+    "funding[].url": {
+        "type": "string",
+        "value": null
+    },
+    "licenseInformation.copyright[]": {
+        "type": "string",
+        "value": null
+    },
+    "licenseInformation.name": {
+        "type": "string",
+        "value": null
+    },
+    "licenseInformation.url": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].email[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].affiliation[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].affiliation[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].affiliation[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].orcid": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].creator[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].email[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].affiliation[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].affiliation[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].affiliation[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].orcid": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataCreator[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].email[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].affiliation[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].affiliation[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].affiliation[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].orcid": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataManager[].eradResearcherNumber": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.hostingInstitution[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.hostingInstitution[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.hostingInstitution[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataLicenseInformation[].copyright[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataLicenseInformation[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataLicenseInformation[].url": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataEncodingFormat[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataFormatProvider[].address[]": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataFormatProvider[].name": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataFormatProvider[].ror": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataNumber": {
+        "type": "number",
+        "value": null
+    },
+    "projectItem[].dmp.dataDescription": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataAccessRightsInformation.conditionOfAccess": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataAccessRightsInformation.dateAvailable": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dataAccessRightsInformation.dataAccessRequirements": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.approximateSize": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.contact": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.measurementTechnique": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dmp.dmpFormat": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].name": {
+        "type": "string",
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:title-ja.value",
+        "list": {
+            "data.attributes.files": "projectItem",
+            "data.attributes.files.items": 0
+        }
+    },
+    "projectItem[].description": {
+        "type": "string",
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:data-description-ja.value",
+        "list": {
+            "data.attributes.files": "projectItem",
+            "data.attributes.files.items": 0
+        }
+    },
+    "projectItem[].field": {
+        "type": "string",
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:data-research-field.value",
+        "list": {
+            "data.attributes.files": "projectItem",
+            "data.attributes.files.items": 0
+        }
+    },
+    "projectItem[].dataCreated": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].dataModified": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].version": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].encodingFormat": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].sha256": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].size": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].filepath": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].url": {
+        "type": "string",
+        "value": null
+    },
+    "projectItem[].doi": {
+        "type": "string",
+        "value": null
+    },
+    "name": {
+        "type": "string",
+        "source": "project_info",
+        "value": "data.attributes.title"
+    },
+    "description": {
+        "type": "string",
+        "source": "project_info",
+        "value": "data.attributes.discription"
+    },
+    "field": {
+        "type": "string",
+        "value": null
+    },
+    "url": {
+        "type": "string",
+        "source": "project_info",
+        "value": "data.links.html"
+    },
+    "raid": {
+        "type": "string",
+        "value": null
+    },
+    "dataStarted": {
+        "type": "string",
+        "source": "project_info",
+        "value": "data.attributes.date_created"
+    },
+    "accessRightsInformation": {
+        "type": "string",
+        "value": null
+    }
+}

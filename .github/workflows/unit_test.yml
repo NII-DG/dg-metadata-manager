@@ -1,48 +1,63 @@
 name: Run Unit Test by pytest
+
 on:
   push:
     branches:
-      - feature/*
+      - master
+      - develop
   pull_request:
     branches:
-      - master
-      - develop/*
+      - develop
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
-        nii-dg-version: ["230419_8c684da"]
 
     steps:
-      # Check out the repository
-      - name: Checout
-        uses: actions/checkout@v3
+      # リポジトリをチェックアウト
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Setting up the Python environment
+      # Python環境のセットアップ
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
-      # Installing Dependent Packages
-      - name: Install dependencies module
+      # モジュールインストール
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pytest
+          pip install pytest-mock
+          pip install pytest-cov
+          pip install requests
+          pip install .
 
-      # Installing Dependent Packages(nii-dg library)
-      - name: Install dependencies module (nii-dg[${{ matrix.nii-dg-version }}])
+      # テスト実施
+      - name: Run pytest
+        # 環境変数の設定
+        env:
+          GRDM_TOKEN: ${{secrets.GRDM_TOKEN}}
+          GRDM_PROJECT_ID: ${{secrets.GRDM_PROJECT_ID}}
+          GRDM_PROJECT_METADATA_ID: ${{secrets.GRDM_PROJECT_METADATA_ID}}
+          GRDM_ACCESS_DENIED_TOKEN: ${{secrets.GRDM_ACCESS_DENIED_TOKEN}}
+          GRDM_ACCESS_DENIED_PROJECT_ID: ${{secrets.GRDM_ACCESS_DENIED_PROJECT_ID}}
         run: |
-          pip install git+https://github.com/NII-DG/nii-dg.git@${{ matrix.nii-dg-version }}
+          pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html
 
-      # Unit Test Execution
-      - name: PyTest
-        run: |
-          pytest -s ./tests
+      # カバレッジ計測ファイル(HTML)のアップロード
+      - name: Upload coverage file
+        if: ${{ matrix.python-version==3.11 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: htmlcov
+          path: htmlcov

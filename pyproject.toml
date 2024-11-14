@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dg-metadata-manager"
+dependencies = [
+    "requests"
+]
+requires-python = ">= 3.8"
+readme = "README.md"
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "dg_mm.__version__"}
+
+[project.scripts]
+metadatamanager = "dg_mm:__main__.main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-mock",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "."
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.report]
+omit = [
+    "dg_mm/__main__.py"
+]
