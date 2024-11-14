@@ -5,8 +5,8 @@ from logging import getLogger
 
 from dg_mm.errors import (
     MappingDefinitionError,
-    NotFoundMappingDefinitionError,
-    NotFoundKeyError
+    MappingDefinitionNotFoundError,
+    KeyNotFoundError
 )
 from dg_mm.util import PackageFileReader
 
@@ -16,7 +16,8 @@ logger = getLogger(__name__)
 class DefinitionManager():
     """マッピング定義の管理を行うクラスです。"""
 
-    def get_and_filter_mapping_definition(self, schema: str, storage: str, filter_properties: list = None) -> dict:
+    @classmethod
+    def get_and_filter_mapping_definition(cls, schema: str, storage: str, filter_properties: list = None) -> dict:
         """マッピング定義の取得と絞り込みを行うメソッドです。
 
         マッピング定義を取得した後、filter_propertiesに要素が存在する場合はそれを用いて絞り込みを行います。
@@ -30,45 +31,44 @@ class DefinitionManager():
             dict: マッピング定義
 
         Raises:
-            NotFoundKeyError: 引数として渡されたプロパティが存在しない。
+            KeyNotFoundError: 引数として渡されたプロパティが存在しない。
 
         """
-        try:
-            if isinstance(filter_properties, list) and not filter_properties:
-                raise NotFoundKeyError("絞り込むプロパティが指定されていません。")
+        if isinstance(filter_properties, list) and not filter_properties:
+            raise KeyNotFoundError("絞り込むプロパティが指定されていません。")
 
-            mapping_definition = self._read_mapping_definition(schema, storage)
-            # 要素が存在する場合のみ絞り込みを行います。
-            if filter_properties:
-                filtered_definition = {}
-                error_keys = []
+        # マッピング定義ファイルの読み込み
+        mapping_definition = cls._read_mapping_definition(schema, storage)
 
-                sanitized_mapping_keys = {
-                    k.replace('[]', ''): k for k in mapping_definition.keys()}
+        # 要素が存在する場合のみ絞り込みを行います。
+        if filter_properties:
+            filtered_definition = {}
+            error_keys = []
 
-                for key in filter_properties:
-                    matched_keys = [sanitized_mapping_keys[sanitized_key]
-                                    for sanitized_key in sanitized_mapping_keys if sanitized_key.startswith(key)]
+            sanitized_mapping_keys = {
+                k.replace('[]', ''): k for k in mapping_definition.keys()}
 
-                    if matched_keys:
-                        for matched_key in matched_keys:
-                            filtered_definition[matched_key] = mapping_definition[matched_key]
-                    else:
-                        error_keys.append(key)
+            for key in filter_properties:
+                matched_keys = [sanitized_mapping_keys[sanitized_key]
+                                for sanitized_key in sanitized_mapping_keys if sanitized_key.startswith(key)]
 
-                if error_keys:
-                    raise NotFoundKeyError(f"指定したプロパティ: {error_keys} が存在しません")
+                if matched_keys:
+                    for matched_key in matched_keys:
+                        filtered_definition[matched_key] = mapping_definition[matched_key]
+                else:
+                    logger.error(f"プロパティが存在しない({key})")
+                    error_keys.append(key)
 
-                return filtered_definition
+            if error_keys:
+                raise KeyNotFoundError(f"指定したプロパティ: {error_keys} が存在しません。")
 
-            else:
-                return mapping_definition
+            return filtered_definition
 
-        except (NotFoundMappingDefinitionError, NotFoundKeyError, MappingDefinitionError) as e:
-            logger.error(e)
-            raise
+        else:
+            return mapping_definition
 
-    def _read_mapping_definition(self, schema: str, storage: str) -> dict:
+    @classmethod
+    def _read_mapping_definition(cls, schema: str, storage: str) -> dict:
         """マッピング定義ファイルの読み取りを行うメソッドです。
 
         Args:
@@ -79,7 +79,7 @@ class DefinitionManager():
             dict: マッピング定義
 
         Raises:
-            NotFoundMappingDefinitionError: l指定したマッピング定義ファイルが存在しない
+            MappingDefinitionNotFoundError: マッピング定義ファイルが存在しない
 
         """
         dir_path = 'data/mapping'
@@ -88,11 +88,13 @@ class DefinitionManager():
         file_path = os.path.join(dir_path, file_name)
 
         if not PackageFileReader.is_file(file_path):
-            raise NotFoundMappingDefinitionError("マッピング定義ファイルが見つかりません。")
+            logger.error(f"マッピング定義ファイルが存在しない({file_path})")
+            raise MappingDefinitionNotFoundError("マッピング定義ファイルが見つかりません。")
 
         try:
             mapping_definition = PackageFileReader.read_json(file_path, encoding='utf-8')
         except Exception as e:
+            logger.error(f"マッピング定義ファイルの読み込みに失敗({file_path})")
             raise MappingDefinitionError("マッピング定義ファイルの読み込みに失敗しました。") from e
 
         return mapping_definition

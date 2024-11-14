@@ -1,63 +1,71 @@
 """エラーのモジュールです。"""
 
-class NotFoundMappingDefinitionError(Exception):
-    """マッピング定義ファイルが見つからないエラーのクラスです。"""
-    pass
 
-class MetadataTypeError(Exception):
-    """データの型が間違っているエラーのクラスです。"""
+class MetadatamanagerError(Exception):
+    """MetadataManagerのエラークラスです。"""
     pass
 
 
-class NotFoundKeyError(Exception):
+class MappingDefinitionNotFoundError(MetadatamanagerError):
+    """マッピング定義ファイルが見つからない場合のエラークラスです。"""
+    pass
+
+
+class DataTypeError(MetadatamanagerError):
+    """データの型が間違っている場合のエラークラスです。"""
+    pass
+
+
+class KeyNotFoundError(MetadatamanagerError):
     """キーが見つからない場合のエラークラスです。"""
     pass
 
 
-class MappingDefinitionError(Exception):
+class MappingDefinitionError(MetadatamanagerError):
     """マッピング定義に誤りがある場合のエラークラスです。"""
     pass
 
 
-class DataFormatError(Exception):
-    """データの形式に問題がある場合のエラーです。"""
-    pass
-
-
-class MetadatamanagerError(Exception):
-    """MetadataManagerのエラー"""
+class DataFormatError(MetadatamanagerError):
+    """データの形式に問題がある場合のエラークラスです。"""
     pass
 
 
 class APIError(MetadatamanagerError):
-    """APIのエラー"""
+    """APIのエラークラスです。"""
     pass
 
 
 class UnauthorizedError(MetadatamanagerError):
-    """未認証のエラー"""
+    """未認証の場合のエラークラスです。"""
     pass
 
 
 class AccessDeniedError(MetadatamanagerError):
-    """アクセス権限がない場合のエラー"""
+    """アクセス権限がない場合のエラークラスです。"""
     pass
 
 
-class InvalidTokenError(MetadatamanagerError):
-    """トークン不正の場合のエラー"""
-    pass
-
-
-class InvalidProjectError(MetadatamanagerError):
-    """プロジェクト不正の場合のエラー"""
+class InvalidSchemaError(MetadatamanagerError):
+    """スキーマ不正の場合のエラークラスです。"""
     pass
 
 
 class InvalidStorageError(MetadatamanagerError):
-    """対応していないストレージを指定した場合のエラー"""
+    """ストレージ不正の場合のエラークラスです。"""
     pass
 
+
+class InvalidTokenError(MetadatamanagerError):
+    """トークン不正の場合のエラークラスです。"""
+    pass
+
+
+class InvalidIdError(MetadatamanagerError):
+    """ID不正の場合のエラークラスです。"""
+    pass
+
+
 class MetadataNotFoundError(MetadatamanagerError):
-    """メタデータが見つからなかった場合のエラー"""
+    """メタデータが見つからなかった場合のエラークラスです。"""
     pass

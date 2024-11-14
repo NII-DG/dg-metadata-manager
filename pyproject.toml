@@ -21,10 +21,16 @@ metadatamanager = "dg_mm:__main__.main"
 dev = [
     "pytest",
     "pytest-mock",
+    "pytest-cov",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = "."
 testpaths = [
     "tests",
+]
+
+[tool.coverage.report]
+omit = [
+    "dg_mm/__main__.py"
 ]

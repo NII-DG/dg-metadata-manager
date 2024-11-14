@@ -17,7 +17,7 @@
         "value": "data.embeds.users.data.attributes.employment.institution_ja",
         "list": {
             "data": "researcher",
-            "employment": "affiliation"
+            "data.embeds.users.data.attributes.employment": "affiliation"
         }
     },
     "researcher[].affiliation[].ror": {
@@ -198,7 +198,11 @@
     },
     "funding[].funder[].name": {
         "type": "string",
-        "value": null
+        "source": "project_metadata",
+        "value": "data.attributes.registration_responses.funder",
+        "list": {
+            "data": "funding"
+        }
     },
     "funding[].funder[].funderId": {
         "type": "string",
@@ -210,7 +214,11 @@
     },
     "funding[].name": {
         "type": "string",
-        "value": null
+        "source": "project_metadata",
+        "value": "data.attributes.registration_responses.program-name-ja",
+        "list": {
+            "data": "funding"
+        }
     },
     "funding[].description": {
         "type": "string",
@@ -218,7 +226,11 @@
     },
     "funding[].japanGrantNumber": {
         "type": "string",
-        "value": null
+        "source": "project_metadata",
+        "value": "data.attributes.registration_responses.japan-grant-number",
+        "list": {
+            "data": "funding"
+        }
     },
     "funding[].url": {
         "type": "string",
@@ -398,15 +410,30 @@
     },
     "projectItem[].name": {
         "type": "string",
-        "value": null
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:title-ja.value",
+        "list": {
+            "data.attributes.files": "projectItem",
+            "data.attributes.files.items": 0
+        }
     },
-    "projectItem[]description": {
+    "projectItem[].description": {
         "type": "string",
-        "value": null
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:data-description-ja.value",
+        "list": {
+            "data.attributes.files": "projectItem",
+            "data.attributes.files.items": 0
+        }
     },
     "projectItem[].field": {
         "type": "string",
-        "value": null
+        "source": "file_metadata",
+        "value": "data.attributes.files.items.data.grdm-file:data-research-field.value",
+        "list": {
+            "data.attributes.files": "projectItem",
+            "data.attributes.files.items": 0
+        }
     },
     "projectItem[].dataCreated": {
         "type": "string",
