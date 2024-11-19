@@ -56,17 +56,11 @@ jobs:
           pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html
 
       # テスト実施(開発環境)
+      # 開発環境のGRDMはGithubからはアクセスできないので、GRDMに接続が必要なテストは除外する
       - name: Run pytest
         if: ${{ github.ref_name != 'master' }}
-        # 環境変数の設定
-        env:
-          GRDM_TOKEN: ${{secrets.DEV_GRDM_TOKEN}}
-          GRDM_PROJECT_ID: ${{secrets.DEV_GRDM_PROJECT_ID}}
-          GRDM_PROJECT_METADATA_ID: ${{secrets.DEV_GRDM_PROJECT_METADATA_ID}}
-          GRDM_ACCESS_DENIED_TOKEN: ${{secrets.DEV_GRDM_ACCESS_DENIED_TOKEN}}
-          GRDM_ACCESS_DENIED_PROJECT_ID: ${{secrets.DEV_GRDM_ACCESS_DENIED_PROJECT_ID}}
         run: |
-          pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html
+          pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html -m "not connect_server"
 
       # カバレッジ計測ファイル(HTML)のアップロード
       - name: Upload coverage file

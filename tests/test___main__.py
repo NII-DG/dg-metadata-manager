@@ -66,6 +66,7 @@ def exe_cmd(cmd):
     return stdout, stderr, rt
 
 
+@pytest.mark.connect_server
 def test_main_success_1():
     """スキーマ全体を取得"""
 
@@ -78,6 +79,7 @@ def test_main_success_1():
     json.loads(out) # JSONの形式の文字列が出力されていればOK
 
 
+@pytest.mark.connect_server
 def test_main_success_2():
     """スキーマの一部(葉ノード)を取得"""
 
@@ -93,6 +95,7 @@ def test_main_success_2():
     assert "name" in out_json
 
 
+@pytest.mark.connect_server
 def test_main_success_3():
     """スキーマの一部(内部ノード)を取得"""
 
@@ -107,6 +110,7 @@ def test_main_success_3():
     assert len(out_json['researcher'][0]) > 0   # レスポンスが引数で指定したノードの配下を含むことの確認
 
 
+@pytest.mark.connect_server
 def test_main_success_4():
     """フィルタのオプションを指定して、プロパティを1つ入力"""
 
@@ -122,6 +126,7 @@ def test_main_success_4():
     assert "name" in out_json
 
 
+@pytest.mark.connect_server
 def test_main_success_5():
     """フィルタのオプションを指定して、プロパティを2つ入力"""
 
@@ -138,6 +143,7 @@ def test_main_success_5():
     assert "description" in out_json
 
 
+@pytest.mark.connect_server
 def test_main_success_6(create_dummy_filter_files):
     """フィルタファイルのオプションを指定"""
 
@@ -153,6 +159,7 @@ def test_main_success_6(create_dummy_filter_files):
     assert "name" in out_json
 
 
+@pytest.mark.connect_server
 def test_main_success_7(create_dummy_filter_files):
     """フィルタとフィルタファイルのオプションを両方指定(フィルタファイルが優先される)"""
 
@@ -168,6 +175,7 @@ def test_main_success_7(create_dummy_filter_files):
     assert "name" in out_json
 
 
+@pytest.mark.connect_server
 def test_main_success_8(tmp_path):
     """ファイル出力先のオプションを指定"""
 
@@ -184,6 +192,7 @@ def test_main_success_8(tmp_path):
         json.load(f)   # JSONファイルとして読み込めればOK
 
 
+@pytest.mark.connect_server
 def test_main_success_9():
     """プロジェクトメタデータIDのオプションを指定"""
 
@@ -197,6 +206,7 @@ def test_main_success_9():
     json.loads(out) # JSONの形式の文字列が出力されていればOK
 
 
+@pytest.mark.connect_server
 def test_main_failure_1():
     """スキーマのオプションを指定しない"""
 
@@ -209,6 +219,7 @@ def test_main_failure_1():
     assert "metadatamanager get: error: the following arguments are required: --schema" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_2():
     """スキーマのオプションを指定したが、スキーマ名を入力しない"""
 
@@ -221,6 +232,7 @@ def test_main_failure_2():
     assert "metadatamanager get: error: argument --schema: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_3():
     """スキーマのオプションを指定して、存在しないスキーマ名を入力"""
 
@@ -233,6 +245,7 @@ def test_main_failure_3():
     assert "エラーが発生しました: 対応していないスキーマが指定されました。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_4():
     """ストレージのオプションを指定しない"""
 
@@ -245,6 +258,7 @@ def test_main_failure_4():
     assert "metadatamanager get: error: the following arguments are required: --storage" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_5():
     """ストレージのオプションを指定したが、ストレージ名を入力しない"""
 
@@ -257,6 +271,7 @@ def test_main_failure_5():
     assert "metadatamanager get: error: argument --storage: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_6():
     """ストレージのオプションを指定して、存在しないストレージ名を入力"""
 
@@ -269,6 +284,7 @@ def test_main_failure_6():
     assert "エラーが発生しました: 対応していないストレージが指定されました。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_7():
     """ストレージにGRDMを入力したが、トークンのオプションを指定しない"""
 
@@ -281,6 +297,7 @@ def test_main_failure_7():
     assert "エラーが発生しました: 認証に失敗しました。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_8():
     """トークンのオプションを指定したが、トークンを入力しない"""
 
@@ -293,6 +310,7 @@ def test_main_failure_8():
     assert "metadatamanager get: error: argument --token: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_9():
     """トークンのオプションを指定して、存在しないトークンを入力"""
 
@@ -305,6 +323,7 @@ def test_main_failure_9():
     assert "エラーが発生しました: 認証に失敗しました。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_10():
     """トークンのオプションを指定して、アクセス権限がないトークンを入力"""
 
@@ -317,6 +336,7 @@ def test_main_failure_10():
     assert "エラーが発生しました: トークンのアクセス権が不足しています。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_11():
     """ストレージにGRDMを入力したが、IDのオプションを指定しない"""
 
@@ -329,6 +349,7 @@ def test_main_failure_11():
     assert "エラーが発生しました: プロジェクトが存在しません。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_12():
     """IDのオプションを指定したが、GRDMのプロジェクトIDを入力しない"""
 
@@ -341,6 +362,7 @@ def test_main_failure_12():
     assert "metadatamanager get: error: argument --id: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_13():
     """IDのオプションを指定して、存在しないGRDMのプロジェクトIDを入力"""
 
@@ -353,6 +375,7 @@ def test_main_failure_13():
     assert "エラーが発生しました: プロジェクトが存在しません。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_14():
     """IDのオプションを指定して、トークン発行したユーザーにアクセス権限がないGRDMのプロジェクトIDを指定"""
 
@@ -365,6 +388,7 @@ def test_main_failure_14():
     assert "エラーが発生しました: プロジェクトへのアクセス権がありません。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_15():
     """フィルタのオプションを指定したが、スキーマのプロパティを入力しない"""
 
@@ -378,6 +402,7 @@ def test_main_failure_15():
     assert "エラーが発生しました: 絞り込むプロパティが指定されていません。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_16():
     """フィルタのオプションを指定して、スキーマに存在しないプロパティを入力"""
 
@@ -391,6 +416,7 @@ def test_main_failure_16():
     assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_17():
     """フィルタファイルのオプションを指定したが、ファイルパスを入力しない"""
 
@@ -404,6 +430,7 @@ def test_main_failure_17():
     assert "metadatamanager get: error: argument --filter-file: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_18():
     """フィルタファイルのオプションを指定して、存在しないファイルのパスを入力"""
 
@@ -417,6 +444,7 @@ def test_main_failure_18():
     assert "エラーが発生しました: ファイルが見つかりません: 'dummy.json'" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_19(create_dummy_filter_files):
     """フィルタファイルのオプションを指定して、期待するフォーマットではないファイルのパスを入力"""
 
@@ -430,6 +458,7 @@ def test_main_failure_19(create_dummy_filter_files):
     assert "エラーが発生しました: フィルタファイルのフォーマットに誤りがあります。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_20(create_dummy_filter_files):
     """フィルタファイルのオプションを指定して、スキーマに存在しないプロパティが書かれたファイルのパスを入力"""
 
@@ -443,6 +472,7 @@ def test_main_failure_20(create_dummy_filter_files):
     assert "エラーが発生しました: 指定したプロパティ: ['dummy'] が存在しません。" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_22():
     """ファイル出力先のオプションを指定したが、ファイルパスを入力しない"""
 
@@ -456,6 +486,7 @@ def test_main_failure_22():
     assert "metadatamanager get: error: argument --file: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_23(create_dummy_output_files):
     """ファイル出力先のオプションを指定して、すでにファイルが存在するパスを入力"""
 
@@ -469,6 +500,7 @@ def test_main_failure_23(create_dummy_output_files):
     assert "エラーが発生しました: The file 'output2.json' already exists" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_24(create_dummy_output_files):
     """ファイル出力先のオプションを指定して、存在しないフォルダを含むパスを入力"""
 
@@ -482,6 +514,7 @@ def test_main_failure_24(create_dummy_output_files):
     assert "エラーが発生しました: The directory 'dummy' does not exist." in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_25(create_dummy_output_files):
     """ファイル出力先のオプションを指定して、書き込み権限がないフォルダを含むパスを入力"""
 
@@ -495,6 +528,7 @@ def test_main_failure_25(create_dummy_output_files):
     assert "Permission denied: 'no_access/output4.json'" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_26():
     """プロジェクトメタデータIDのオプションを指定したが、IDを入力しない"""
 
@@ -508,6 +542,7 @@ def test_main_failure_26():
     assert "metadatamanager get: error: argument --project-metadata-id: expected one argument" in err
 
 
+@pytest.mark.connect_server
 def test_main_failure_27():
     """プロジェクトメタデータIDのオプションを指定して、存在しないプロジェクトメタデータIDを入力"""
 
