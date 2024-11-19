@@ -60,7 +60,7 @@ jobs:
       - name: Run pytest
         if: ${{ github.ref_name != 'master' }}
         run: |
-          pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html -m "not connect_server"
+          pytest ./tests -sv --cov=dg_mm --cov-branch --cov-report=html --ignore=tests/test___main__.py
 
       # カバレッジ計測ファイル(HTML)のアップロード
       - name: Upload coverage file
