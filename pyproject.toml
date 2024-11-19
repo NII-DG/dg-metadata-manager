@@ -29,9 +29,6 @@ pythonpath = "."
 testpaths = [
     "tests",
 ]
-markers = [
-    "connect_server",
-]
 
 [tool.coverage.report]
 omit = [
