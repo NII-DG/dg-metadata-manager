@@ -479,7 +479,7 @@
     "description": {
         "type": "string",
         "source": "project_info",
-        "value": "data.attributes.discription"
+        "value": "data.attributes.description"
     },
     "field": {
         "type": "string",
