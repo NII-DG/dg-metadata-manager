@@ -1,7 +1,8 @@
 # dg-metadata-manager
-特定のストレージから取得したデータを、特定のスキーマ(※)の形式に変換するモジュール
 
-※ NII RDC-APまたはその拡張機能であるDG-APに沿うように内部データを持つスキーマ
+A module to convert data retrieved from a specific storage into the format of a specific schema (*).
+
+* A schema that has internal data conforming to NII RDC-AP or its extension, DG-AP.
 
 ## Installation
 
@@ -17,16 +18,16 @@ from dg_mm import MetadataManager
 mm = MetadataManager()
 metadata = mm.get_metadata('schema name', 'storage name', token='token for storage access', id='storage id')
 ```
-### schema name
-現在使用できるスキーマ名一覧
 
-|スキーマ名|概要|
-|---|---|
-|RF|リサーチフロー/DG-Webで使用するスキーマ|
+## List of currently available schema names
 
-### storage name
-現在使用できるストレージ名一覧
 
-|ストレージ名|概要|アクセスに必要なパラメータ|
-|---|---|---|
-|GRDM|GakuNin RDM|token, id(プロジェクトIDを指定)
+| Schema Name | Description                           |
+| ----------- | ------------------------------------- |
+| RF          | Schema used in Research Flow / DG-Web |
+
+## List of currently available storage names
+
+| Storage Name | Description | Required parameters for access |
+| ------------ | ----------- | ------------------------------ |
+| GRDM         | GakuNin RDM | token, id (specify project ID) |
